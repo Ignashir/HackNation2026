@@ -1,2 +1,5 @@
 codebase/
 solution/sql/dev
+.env
+__pycache__/
+.pytest_cache/
