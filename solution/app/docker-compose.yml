@@ -1,0 +1,24 @@
+# Local PostGIS with the AED schema (solution/sql/init.sql) and dummy data.
+# Port 5433 on the host, so it does not clash with other local Postgres.
+services:
+  aed-db:
+    image: postgis/postgis:17-3.5
+    container_name: aed-db
+    environment:
+      POSTGRES_DB: aed
+      POSTGRES_USER: aed
+      POSTGRES_PASSWORD: aed
+    ports:
+      - "5433:5432"
+    volumes:
+      - ../sql:/sql:ro
+      - ./db/initdb.sh:/docker-entrypoint-initdb.d/20_aed.sh:ro
+      - aed_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aed -d aed"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  aed_db_data:
