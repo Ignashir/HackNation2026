@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import AedMap from './components/AedMap.jsx';
+import AedMap, { SITE_ZOOM } from './components/AedMap.jsx';
 import AedCard from './components/AedCard.jsx';
 import { STATE } from './labels.js';
 import useGeolocation, { GEO_MESSAGE } from './useGeolocation.js';
@@ -28,7 +28,7 @@ export default function App() {
 
   const selectSite = (site) => {
     setSelectedId(site.site_id);
-    setFocus({ lat: site.lat, lon: site.lon, zoom: 15 });
+    setFocus({ lat: site.lat, lon: site.lon, zoom: SITE_ZOOM });
   };
 
   // Tracked position -> nearest available AED (nearest_available_aed()).

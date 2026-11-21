@@ -47,6 +47,19 @@ Open http://localhost:5173.
 
 Pin colours: green = open now, amber = closed now, grey = hours unknown, red = all devices out of service.
 
+**Grouping (clustering):** the client loads every site once and groups them with
+[supercluster](https://github.com/mapbox/supercluster) (`ClusteredSites` in `AedMap.jsx`).
+- Only the groups and pins inside the current view are drawn (tens to a few hundred markers, never 19k).
+- A bubble shows the count, and its ring shows the open/closed/unknown/broken mix inside.
+- Clicking a bubble zooms to where it splits. From zoom 16 (`SITE_ZOOM`) every AED is its own pin.
+- Tuning knobs: `CLUSTER_RADIUS_PX` (80) and `CLUSTER_MAX_ZOOM` (15).
+
+Tested with 19k synthetic sites: about 0.7 MB gzipped payload and an under-0.2 s index build, with no multi-second stalls.
+`GET /api/sites` is gzipped and cached for 60 s on the server. Since "open now" changes per minute, that delay doesn't matter.
+
+For a local load test: `docker exec -i aed-db psql -U aed -d aed < ../sql/dev/seed_stress.sql`
+(19k `STRESS ·` sites; `npm run db:reset` removes them).
+
 **My location:** on load the app asks for geolocation and tracks it continuously
 (`src/useGeolocation.js`, `watchPosition`). It shows a pulsing blue dot with an accuracy circle, plus a heading cone
 on devices that report direction. The button under the zoom controls re-centres the map on you, and
@@ -54,7 +67,7 @@ on devices that report direction. The button under the zoom controls re-centres 
 
 ## Known limitations
 
-- All pins are loaded at once. That's fine for hundreds of sites; for the national dataset (tens of thousands),
-  add bbox filtering (`ST_MakeEnvelope` + the GiST index) and marker clustering.
+- The client still downloads all sites once (fine at about 19k). Well beyond about 100k, switch to server-side
+  clustering per bbox and zoom (e.g. `ST_SnapToGrid` / `ST_ClusterDBSCAN` with the GiST index).
 - Public holidays are not passed to `site_open_at()` (it is always called with `p_is_holiday = false`).
 - Map tiles come from the public OSM tile server, which is fine for a demo. Production needs our own tiles or a provider.

@@ -2,6 +2,7 @@
 //   GET /api/sites          - all fixed sites as map pins
 //   GET /api/sites/:id      - everything the info card shows
 //   GET /api/nearest        - ?lat=&lon=[&limit=&max_m=] -> nearest_available_aed()
+import compression from 'compression';
 import express from 'express';
 import pg from 'pg';
 
@@ -18,6 +19,7 @@ pg.types.setTypeParser(1082, (v) => v);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const app = express();
+app.use(compression());
 
 const wrap = (fn) => (req, res) =>
   fn(req, res).catch((err) => {
@@ -30,35 +32,45 @@ app.get('/api/health', wrap(async (_req, res) => {
   res.json({ ok: true });
 }));
 
-// Pins: location + just enough to colour them.
+// Pins: location + just enough to colour them. Kept lean because the client
+// loads every site once and clusters them itself (supercluster).
 //   state = 'down'    all devices out_of_service/removed
 //           'open'    open now (24/7 or matching availability_rule)
 //           'closed'  closed now
 //           'unknown' no hours known
-app.get('/api/sites', wrap(async (_req, res) => {
+// "Open now" only changes on minute boundaries, so the result is cached briefly.
+const SITES_TTL_MS = 60_000;
+let sitesCache = { at: 0, body: null, pending: null };
+
+async function loadSites() {
   const { rows } = await pool.query(`
     SELECT s.site_id,
            s.name,
-           ST_Y(s.location::geometry) AS lat,
-           ST_X(s.location::geometry) AS lon,
-           s.is_24_7,
-           a.city,
-           o.open_now,
-           d.total AS device_count,
+           round(ST_Y(s.location::geometry)::numeric, 6)::float8 AS lat,
+           round(ST_X(s.location::geometry)::numeric, 6)::float8 AS lon,
            CASE WHEN d.total > 0 AND d.usable = 0 THEN 'down'
                 WHEN o.open_now IS TRUE  THEN 'open'
                 WHEN o.open_now IS FALSE THEN 'closed'
                 ELSE 'unknown' END AS state
     FROM aed_site s
-    LEFT JOIN address a ON a.address_id = s.address_id
     CROSS JOIN LATERAL (SELECT site_open_at(s.site_id) AS open_now) o
     CROSS JOIN LATERAL (
         SELECT count(*)::int AS total,
                count(*) FILTER (WHERE dv.status IN ('active', 'unknown'))::int AS usable
         FROM aed_device dv WHERE dv.site_id = s.site_id
-    ) d
-    ORDER BY s.name`);
-  res.json(rows);
+    ) d`);
+  return JSON.stringify(rows);
+}
+
+app.get('/api/sites', wrap(async (_req, res) => {
+  if (!sitesCache.body || Date.now() - sitesCache.at > SITES_TTL_MS) {
+    // Concurrent requests share one in-flight query.
+    sitesCache.pending ??= loadSites()
+      .then((body) => { sitesCache = { at: Date.now(), body, pending: null }; })
+      .finally(() => { sitesCache.pending = null; });
+    await sitesCache.pending;
+  }
+  res.type('json').set('Cache-Control', 'max-age=30').send(sitesCache.body);
 }));
 
 app.get('/api/sites/:id', wrap(async (req, res) => {
