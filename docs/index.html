@@ -29,11 +29,7 @@
   p { margin: 0 0 10px; }
   .muted { color: var(--muted); font-size: .92rem; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  form { display: flex; gap: 8px; flex-wrap: wrap; }
-  input { flex: 1 1 220px; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px;
-          border: 1px solid var(--line); background: var(--bg); color: var(--text); }
   button, .btn { font: inherit; cursor: pointer; border-radius: 8px; text-decoration: none; }
-  form button { padding: 10px 16px; border: 0; background: var(--accent); color: var(--accent-text); font-weight: 600; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
   .btn { display: block; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); color: var(--text); }
   .btn:hover, .btn:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
@@ -57,6 +53,7 @@
   .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
   .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   [role="tabpanel"]:focus { outline: none; }
+  .promo-video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #000; }
   .material { display: grid; gap: 10px; }
   .material-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
   .material-head h3 { margin: 0; font-size: 1rem; }
@@ -82,19 +79,7 @@
   <p class="muted">The demo runs on a laptop. Your device must be on the <strong>same Wi-Fi</strong> as the laptop
     (not mobile data, no VPN).</p>
 
-  <h2>Laptop address</h2>
-  <div class="card">
-    <form id="ip-form">
-      <input id="ip" name="ip" inputmode="decimal" autocomplete="off" spellcheck="false"
-             placeholder="e.g. 10.250.162.60" aria-label="Laptop IP address">
-      <button type="submit">Use</button>
-    </form>
-    <p class="muted" style="margin-top:8px">The laptop prints it when the demo starts (<code>./laptop.sh</code>).
-      It changes when the laptop joins another network.</p>
-    <p id="error" class="hidden" role="alert" style="color:#d33;margin:8px 0 0">Enter an IPv4 address like 10.250.162.60.</p>
-  </div>
-
-  <div id="links" class="hidden">
+  <div id="links">
     <h2>AED</h2>
     <div class="grid">
       <a class="btn" data-host="m" href="#"><strong>AED finder (mobile)</strong><span>nearest AED, works offline</span></a>
@@ -140,9 +125,11 @@
 
   <section id="panel-promocja" role="tabpanel" aria-labelledby="tab-promocja" tabindex="-1" lang="pl" hidden>
     <h2>Akcja promocyjna</h2>
-    <div class="card">
-      <p class="muted">Wkrótce: materiały akcji promocyjnej.</p>
-    </div>
+    <video class="promo-video" controls playsinline preload="metadata"
+           poster="media/berAEDy-poster.jpg" aria-label="Film berAEDy">
+      <source src="media/berAEDy.mp4" type="video/mp4">
+      Twoja przeglądarka nie odtwarza wideo. <a href="media/berAEDy.mp4">Pobierz film (MP4)</a>.
+    </video>
   </section>
 
   <section id="panel-materials" role="tabpanel" aria-labelledby="tab-materials" tabindex="-1" hidden>
@@ -179,40 +166,23 @@
 </main>
 
 <script>
+  // The laptop's address. A link with ?ip=… overrides it (./laptop.sh prints one after a network change).
+  const DEFAULT_IP = '10.250.162.60';
   const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
-  const STORE = 'aed-demo-ip';
-  const input = document.getElementById('ip');
 
-  function load() {
-    const fromUrl = new URLSearchParams(location.search).get('ip');
-    if (fromUrl) return fromUrl;
-    try { return localStorage.getItem(STORE) || ''; } catch { return ''; }
-  }
-
-  function apply(raw) {
+  function laptopIp() {
     // Accept "10.250.162.60", "10-250-162-60" or a pasted "...10-250-162-60.sslip.io" URL.
-    const m = String(raw).trim().match(/(\d{1,3}[.-]\d{1,3}[.-]\d{1,3}[.-]\d{1,3})/);
+    const raw = new URLSearchParams(location.search).get('ip') || '';
+    const m = raw.trim().match(/(\d{1,3}[.-]\d{1,3}[.-]\d{1,3}[.-]\d{1,3})/);
     const ip = m ? m[1].replace(/-/g, '.') : '';
-    const valid = IPV4.test(ip);
-    document.getElementById('error').classList.toggle('hidden', valid || !raw);
-    document.getElementById('links').classList.toggle('hidden', !valid);
-    if (!valid) return;
-
-    input.value = ip;
-    const domain = ip.replace(/\./g, '-') + '.sslip.io';
-    try { localStorage.setItem(STORE, ip); } catch {}
-    const url = new URL(location.href);
-    url.searchParams.set('ip', ip);
-    history.replaceState(null, '', url);
-
-    for (const a of document.querySelectorAll('a[data-host]')) {
-      const host = a.dataset.host ? `${a.dataset.host}.${domain}` : domain;
-      a.href = `https://${host}${a.dataset.path || '/'}`;
-    }
+    return IPV4.test(ip) ? ip : DEFAULT_IP;
   }
 
-  document.getElementById('ip-form').addEventListener('submit', (e) => { e.preventDefault(); apply(input.value); });
-  apply(load());
+  const domain = laptopIp().replace(/\./g, '-') + '.sslip.io';
+  for (const a of document.querySelectorAll('a[data-host]')) {
+    const host = a.dataset.host ? `${a.dataset.host}.${domain}` : domain;
+    a.href = `https://${host}${a.dataset.path || '/'}`;
+  }
 
   const tabs = [...document.querySelectorAll('[role="tab"]')];
   function show(tab, focus) {
@@ -222,6 +192,8 @@
       t.tabIndex = on ? 0 : -1;
       const panel = document.getElementById(t.getAttribute('aria-controls'));
       panel.hidden = !on;
+      // A hidden video keeps playing its sound: pause it when its tab is left.
+      if (!on) for (const v of panel.querySelectorAll('video')) v.pause();
       // Load PDF previews only when their tab is opened.
       if (on) for (const o of panel.querySelectorAll('object[data-src]')) { o.data = o.dataset.src; o.removeAttribute('data-src'); }
     }
