@@ -39,21 +39,16 @@
   .btn:hover, .btn:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
   .btn strong { display: block; color: var(--accent); }
   .btn span { display: block; color: var(--muted); font-size: .86rem; }
-  .btn.primary { background: var(--accent); border-color: var(--accent); }
-  .btn.primary strong, .btn.primary span { color: var(--accent-text); }
-  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 12px 16px; }
-  details { margin-top: 10px; }
-  summary { cursor: pointer; font-weight: 600; }
-  ol { margin: 8px 0 0; padding-left: 20px; }
-  li { margin-bottom: 4px; }
   code { font-size: .88em; overflow-wrap: anywhere; }
   .table-wrap { overflow-x: auto; margin-top: 8px; }
   table { width: 100%; border-collapse: collapse; font-size: .92rem; }
   th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
   th { color: var(--muted); font-weight: 600; }
   tbody tr:last-child td { border-bottom: 0; }
-  td code, code.pw { user-select: all; }
-  td code { overflow-wrap: anywhere; }
+  td code { display: block; user-select: all; overflow-wrap: anywhere; }
+  td .k { display: block; color: var(--muted); font-size: .78rem; margin-top: 4px; }
+  td .k:first-child { margin-top: 0; }
+  td .role { display: block; color: var(--muted); font-size: .82rem; }
   .hidden { display: none; }
 </style>
 </head>
@@ -76,44 +71,14 @@
   </div>
 
   <div id="links" class="hidden">
-    <h2>1. Trust the laptop's certificate (once per device)</h2>
-    <div class="warn">
-      <p>Without this, browsers show security warnings and the portal pages stay empty.</p>
-      <a class="btn primary" id="ca" href="#"><strong>Download certificate</strong><span>plain http, works before it is trusted</span></a>
-      <details>
-        <summary>iPhone / iPad</summary>
-        <ol>
-          <li>Open the button above in <strong>Safari</strong> and tap Allow.</li>
-          <li>Settings → Profile Downloaded → Install.</li>
-          <li>Settings → General → About → Certificate Trust Settings → turn on <em>Caddy Local Authority</em>.</li>
-        </ol>
-      </details>
-      <details>
-        <summary>Android</summary>
-        <ol>
-          <li>Download the certificate with the button above.</li>
-          <li>Settings → Security → Encryption &amp; credentials → Install a certificate → CA certificate.</li>
-        </ol>
-      </details>
-      <details>
-        <summary>Mac / Windows</summary>
-        <ol>
-          <li>Mac: open the downloaded file, add it to <em>System</em> in Keychain Access, double-click it and set
-            <em>Always Trust</em>.</li>
-          <li>Windows: open the file → Install Certificate → Local Machine → <em>Trusted Root Certification Authorities</em>.</li>
-          <li>Restart the browser.</li>
-        </ol>
-      </details>
-    </div>
-
-    <h2>2. AED</h2>
+    <h2>AED</h2>
     <div class="grid">
       <a class="btn" data-host="m" href="#"><strong>AED finder (mobile)</strong><span>nearest AED, works offline</span></a>
       <a class="btn" data-host="" data-path="/pl/aed" href="#"><strong>National AED list</strong><span>portal page, map and table</span></a>
       <a class="btn" data-host="konwerter" href="#"><strong>AED data converter</strong><span>convert a register to the standard</span></a>
     </div>
 
-    <h2>3. Open data portal</h2>
+    <h2>Open data portal</h2>
     <div class="grid">
       <a class="btn" data-host="" data-path="/pl" href="#"><strong>Portal</strong><span>home page</span></a>
       <a class="btn" data-host="" data-path="/pl/dataset" href="#"><strong>Data</strong><span>datasets and files</span></a>
@@ -122,29 +87,30 @@
 
     <h2>Admin panel logins</h2>
     <div class="card">
-      <p class="muted">Demo accounts of the AED register providers, for the <strong>Admin panel</strong> above.
-        Each one manages its own institution's AED register.</p>
-      <p>Password for all accounts: <code class="pw">AedTest123!</code></p>
+      <p class="muted">Demo accounts for the <strong>Admin panel</strong> above. Provider accounts manage only
+        their own institution's AED register.</p>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr><th scope="col">Institution</th><th scope="col">Login</th></tr>
+            <tr><th scope="col">Account</th><th scope="col">Login and password</th></tr>
           </thead>
           <tbody>
-            <tr><td>Koordynator Krajowego Wykazu AED</td><td><code>aed.koordynator@mcod.local</code></td></tr>
-            <tr><td>Baza AED HackNation (demo)</td><td><code>aed.baza@mcod.local</code></td></tr>
-            <tr><td>Urząd Miasta Krosna</td><td><code>aed.krosno@mcod.local</code></td></tr>
-            <tr><td>Urząd Miejski w Przemyślu</td><td><code>aed.przemysl@mcod.local</code></td></tr>
-            <tr><td>Urząd Miasta Marki</td><td><code>aed.marki@mcod.local</code></td></tr>
-            <tr><td>Urząd m.st. Warszawy</td><td><code>aed.warszawa@mcod.local</code></td></tr>
+            <tr><td>Administrator<span class="role">superuser, sees and edits everything</span></td><td><span class="k">Login</span><code>admin@mcod.local</code><span class="k">Password</span><code>testadmin123!</code></td></tr>
+            <tr><td>Pierwsza instytucja<span class="role">sample institution (pełnomocnik)</span></td><td><span class="k">Login</span><code>pelnomocnik@mcod.local</code><span class="k">Password</span><code>User123!</code></td></tr>
+            <tr><td>Koordynator Krajowego Wykazu AED<span class="role">publishes the national AED list</span></td><td><span class="k">Login</span><code>aed.koordynator@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
+            <tr><td>Baza AED HackNation (demo)<span class="role">AED register provider</span></td><td><span class="k">Login</span><code>aed.baza@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
+            <tr><td>Urząd Miasta Krosna<span class="role">AED register provider</span></td><td><span class="k">Login</span><code>aed.krosno@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
+            <tr><td>Urząd Miejski w Przemyślu<span class="role">AED register provider</span></td><td><span class="k">Login</span><code>aed.przemysl@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
+            <tr><td>Urząd Miasta Marki<span class="role">AED register provider</span></td><td><span class="k">Login</span><code>aed.marki@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
+            <tr><td>Urząd m.st. Warszawy<span class="role">AED register provider</span></td><td><span class="k">Login</span><code>aed.warszawa@mcod.local</code><span class="k">Password</span><code>AedTest123!</code></td></tr>
           </tbody>
         </table>
       </div>
     </div>
 
-    <p class="muted" style="margin-top:24px">Nothing loads? Try the certificate button first: it uses plain http.
-      If it times out, the device can't reach the laptop (different network, mobile data, or the Wi-Fi blocks
-      devices from talking to each other: use a phone hotspot for all devices).</p>
+    <p class="muted" style="margin-top:24px">Nothing loads? The device must be on the same Wi-Fi as the laptop
+      (not mobile data, no VPN). If pages time out, the Wi-Fi may block devices from talking to each other:
+      connect the laptop and all devices to a phone hotspot.</p>
   </div>
 </main>
 
@@ -175,7 +141,6 @@
     url.searchParams.set('ip', ip);
     history.replaceState(null, '', url);
 
-    document.getElementById('ca').href = `http://ca.${domain}/`;
     for (const a of document.querySelectorAll('a[data-host]')) {
       const host = a.dataset.host ? `${a.dataset.host}.${domain}` : domain;
       a.href = `https://${host}${a.dataset.path || '/'}`;
