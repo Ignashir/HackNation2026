@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>AED PRZYKŁAD</name>
+<Placemark><name>PRZYKŁAD · Dworzec autobusowy</name><description>Poczekalnia, przy kasach</description>
+<ExtendedData><Data name="telefon"><value>12 000 00 21</value></Data><Data name="godziny"><value>codziennie 5-23</value></Data></ExtendedData>
+<Point><coordinates>19.82500,50.05900,0</coordinates></Point></Placemark>
+<Placemark><name>PRZYKŁAD · Park miejski</name><description>Szafka przy fontannie</description>
+<ExtendedData><Data name="telefon"><value>12 000 00 22</value></Data><Data name="godziny"><value>24/7</value></Data></ExtendedData>
+<Point><coordinates>19.83100,50.06400,0</coordinates></Point></Placemark>
+</Document></kml>
