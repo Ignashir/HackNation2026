@@ -1,0 +1,362 @@
+<title>Konwerter danych AED</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Układ: kreator w pięciu krokach, zawsze widoczny jeden krok. Wąska kolumna (ok. 820 px) dla czytelności,
+   duże pola i przyciski, pasek „Wstecz / Dalej” na dole każdego kroku.
+   Kolory z księgi znaku AEDane: Granat Danych jako kolor pracy, Czerwień Pulsu tylko w znaku i bieżącym kroku. */
+:root {
+  --pulse: #E30B2C;
+  --bg: #F3F4F7;            /* Mgła */
+  --surface: #FFFFFF;
+  --surface-2: #E9ECF2;
+  --fg: #14213D;            /* Granat Danych */
+  --muted: #4A536A;
+  --line: #C9CFDB;
+  --accent: #14213D;
+  --accent-fg: #FFFFFF;
+  --accent-soft: #E3E8F2;
+  --ok: #00704A; --ok-soft: #DDF2E8;
+  --err: #B3261E; --err-soft: #FBE9E7;
+  --warn: #7A4A00; --warn-soft: #FFF1D6;
+  --info: #2A5384; --info-soft: #E6EEF8;
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --r: 12px;
+  --ctl: 48px;              /* wysokość pól i przycisków */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C1324; --surface: #131C31; --surface-2: #1B2640; --fg: #EEF1F7; --muted: #B3BCD0; --line: #34426A;
+    --accent: #D3DDF3; --accent-fg: #0C1324; --accent-soft: #1F2C4A; --pulse: #FF4B63;
+    --ok: #5AD6A0; --ok-soft: #10301F; --err: #FF9A90; --err-soft: #3A1714; --warn: #F5C46E; --warn-soft: #362810; --info: #9BC1EC; --info-soft: #16263B;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C1324; --surface: #131C31; --surface-2: #1B2640; --fg: #EEF1F7; --muted: #B3BCD0; --line: #34426A;
+  --accent: #D3DDF3; --accent-fg: #0C1324; --accent-soft: #1F2C4A; --pulse: #FF4B63;
+  --ok: #5AD6A0; --ok-soft: #10301F; --err: #FF9A90; --err-soft: #3A1714; --warn: #F5C46E; --warn-soft: #362810; --info: #9BC1EC; --info-soft: #16263B;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 17px; line-height: 1.55; margin: 0; }
+.wrap { max-width: 860px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 64px; display: grid; gap: 22px; }
+h1, h2, h3 { text-wrap: balance; margin: 0; line-height: 1.25; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.2rem); font-weight: 800; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.4rem, 3vw, 1.7rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; font-weight: 700; }
+p { margin: 0; }
+a { color: inherit; text-underline-offset: 3px; }
+code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.9em; }
+.muted { color: var(--muted); }
+.lede { font-size: 1.05rem; color: var(--muted); max-width: 62ch; }
+
+header.top { display: grid; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand svg { width: 60px; height: auto; flex: none; }
+.eyebrow { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: var(--muted); }
+.eyebrow b { color: var(--pulse); }
+
+/* pasek kroków */
+ol.stepper { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; counter-reset: s; }
+ol.stepper li { min-width: 0; }
+ol.stepper button { width: 100%; text-align: left; font: inherit; color: var(--muted); background: transparent; border: 0; border-top: 4px solid var(--line); padding: 8px 2px 0; cursor: pointer; display: grid; gap: 1px; }
+ol.stepper button:disabled { cursor: default; }
+ol.stepper .n { font-size: 0.8rem; font-weight: 700; }
+ol.stepper .t { font-size: 0.92rem; font-weight: 600; line-height: 1.25; }
+ol.stepper li.done button { border-top-color: var(--ok); color: var(--fg); }
+ol.stepper li.done .n::after { content: " ✓"; color: var(--ok); }
+ol.stepper li.cur button { border-top-color: var(--pulse); color: var(--fg); }
+ol.stepper li.skip .n::after { content: " · pominięty"; font-weight: 500; }
+@media (max-width: 600px) { ol.stepper .t { display: none; } ol.stepper li.cur .t { display: block; } ol.stepper { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+/* krok */
+section.step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: clamp(18px, 4vw, 30px); display: grid; gap: 20px; min-width: 0; }
+.shead { display: grid; gap: 6px; }
+.shead .n { font-size: 0.9rem; font-weight: 700; color: var(--pulse); }
+.navbar { display: flex; gap: 12px; justify-content: space-between; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 18px; }
+.navbar .hint { flex: 1 1 240px; color: var(--muted); font-size: 0.95rem; }
+
+/* przyciski i pola */
+.btn { font: inherit; font-weight: 600; font-size: 1rem; min-height: var(--ctl); border-radius: 10px; padding: 10px 20px; border: 2px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.btn.big { min-height: 56px; font-size: 1.1rem; padding: 12px 28px; }
+.btn.small { min-height: 40px; padding: 6px 14px; font-size: 0.95rem; }
+.btn.link { border: 0; background: none; padding: 0; min-height: 0; text-decoration: underline; font-weight: 600; }
+:focus-visible { outline: 3px solid var(--pulse); outline-offset: 2px; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+label.lbl { display: block; font-weight: 600; font-size: 0.95rem; margin-bottom: 6px; }
+select, input[type="text"], input[type="date"], input[type="number"], textarea {
+  font: inherit; font-size: 1rem; color: var(--fg); background: var(--surface); border: 2px solid var(--line); border-radius: 10px;
+  min-height: var(--ctl); padding: 10px 12px; width: 100%; max-width: 100%; min-width: 0;
+}
+select { padding-right: 36px; }
+select:focus, input:focus, textarea:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); flex: none; }
+label.check { display: flex; gap: 10px; align-items: flex-start; font-size: 1rem; cursor: pointer; }
+
+/* komunikaty */
+.note { border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; font-size: 1rem; }
+.note.ok { background: var(--ok-soft); }
+.note.err { background: var(--err-soft); }
+.note.warn { background: var(--warn-soft); }
+.note.info { background: var(--info-soft); }
+.note b.t { font-weight: 700; }
+.note.err b.t { color: var(--err); } .note.ok b.t { color: var(--ok); }
+
+details.more { border: 1px solid var(--line); border-radius: 10px; }
+details.more > summary { cursor: pointer; padding: 14px 16px; font-weight: 600; list-style: none; display: flex; gap: 10px; align-items: center; }
+details.more > summary::before { content: "▸"; color: var(--muted); transition: transform .15s; }
+details.more[open] > summary::before { transform: rotate(90deg); }
+details.more > summary::-webkit-details-marker { display: none; }
+details.more > .in { padding: 0 16px 16px; display: grid; gap: 14px; }
+@media (prefers-reduced-motion: reduce) { details.more > summary::before { transition: none; } }
+
+/* krok 1 */
+.drop { border: 3px dashed var(--line); border-radius: var(--r); padding: 36px 18px; text-align: center; display: grid; gap: 10px; justify-items: center; cursor: pointer; background: var(--bg); position: relative; }
+.drop:hover, .drop.over, .drop:focus-within { border-color: var(--accent); background: var(--accent-soft); }
+.drop input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.drop .big { font-size: 1.25rem; font-weight: 700; }
+.drop .ico { width: 48px; height: 48px; }
+.loaded { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.loaded .file { font-weight: 700; overflow-wrap: anywhere; }
+.scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-weight: 700; background: var(--surface-2); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+table.preview td { white-space: nowrap; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+
+/* krok 2: karty pól */
+.cards { display: grid; gap: 12px; }
+.card { border: 2px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.card.need { border-color: var(--err); }
+.card.check { border-color: var(--warn); }
+.card .ch { display: flex; gap: 10px; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; }
+.card .ch h3 { flex: 1 1 260px; }
+.card .help { color: var(--muted); font-size: 0.95rem; }
+.card .grid2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+@media (max-width: 640px) { .card .grid2 { grid-template-columns: minmax(0, 1fr); } }
+.card .result { font-size: 0.95rem; background: var(--bg); border-radius: 8px; padding: 8px 12px; overflow-wrap: anywhere; }
+.card .result b { font-weight: 600; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 700; border-radius: 999px; padding: 4px 12px; white-space: nowrap; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.badge.err { background: var(--err-soft); color: var(--err); }
+.badge.warn { background: var(--warn-soft); color: var(--warn); }
+.badge.off { background: var(--surface-2); color: var(--muted); font-weight: 600; }
+.progress { display: grid; gap: 8px; }
+.meter { height: 12px; border-radius: 99px; background: var(--surface-2); overflow: hidden; display: flex; }
+.meter i { display: block; height: 100%; }
+.meter i.ok { background: var(--ok); } .meter i.err { background: var(--err); }
+
+/* krok 3: słowniki */
+.vrow { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 12px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.vrow:first-of-type { border-top: 0; }
+.vrow .raw { font-weight: 600; overflow-wrap: anywhere; }
+.vrow .raw small { display: block; font-weight: 400; color: var(--muted); font-size: 0.88rem; }
+@media (max-width: 600px) { .vrow { grid-template-columns: minmax(0, 1fr); gap: 6px; } }
+
+/* krok 4: wyniki */
+.big-num { font-size: clamp(1.4rem, 3.4vw, 1.8rem); font-weight: 800; letter-spacing: -0.01em; }
+.dev { border: 2px solid var(--line); border-radius: var(--r); padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.dev.bad { border-color: var(--err); }
+.dev .dh { display: flex; gap: 10px; flex-wrap: wrap; align-items: baseline; justify-content: space-between; }
+.dev .dh h3 { overflow-wrap: anywhere; }
+.dev .dh .where { color: var(--muted); font-size: 0.92rem; }
+.prob { display: grid; gap: 8px; background: var(--err-soft); border-radius: 10px; padding: 12px 14px; }
+.prob.warning { background: var(--warn-soft); }
+.prob .pm { overflow-wrap: anywhere; }
+.prob .pm b { font-weight: 700; }
+.prob .fix { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+@media (max-width: 480px) { .prob .fix { grid-template-columns: minmax(0, 1fr); } }
+ul.plain { margin: 0; padding-left: 1.2rem; display: grid; gap: 6px; }
+.pager { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+/* krok 5 */
+.dlbox { display: grid; gap: 12px; justify-items: start; background: var(--ok-soft); border-radius: var(--r); padding: 20px; }
+.dlbox.empty { background: var(--err-soft); }
+ol.howto { margin: 0; padding-left: 1.4rem; display: grid; gap: 8px; }
+pre.snippet { margin: 0; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 14px; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 0.88rem; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+footer { color: var(--muted); font-size: 0.9rem; display: grid; gap: 4px; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 12px 20px; border-radius: 10px; font-size: 1rem; font-weight: 500; z-index: 20; max-width: calc(100% - 32px); }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <!--@@SYGNET@@-->
+      <div>
+        <p class="eyebrow"><b>AEDane</b> · Pokaż swoje AED</p>
+        <h1>Konwerter danych AED</h1>
+      </div>
+    </div>
+    <p class="lede">Przygotuj plik o swoich defibrylatorach do publikacji na dane.gov.pl. Wystarczy Twoja dotychczasowa tabela, na przykład z Excela. Plik zostaje na Twoim komputerze i nie jest nigdzie wysyłany.</p>
+  </header>
+
+  <nav aria-label="Postęp">
+    <ol class="stepper" id="stepper">
+      <li data-s="1"><button type="button" data-go="1"><span class="n">Krok 1</span><span class="t">Wczytaj tabelę</span></button></li>
+      <li data-s="2"><button type="button" data-go="2"><span class="n">Krok 2</span><span class="t">Wskaż kolumny</span></button></li>
+      <li data-s="3"><button type="button" data-go="3"><span class="n">Krok 3</span><span class="t">Wyjaśnij określenia</span></button></li>
+      <li data-s="4"><button type="button" data-go="4"><span class="n">Krok 4</span><span class="t">Popraw błędy</span></button></li>
+      <li data-s="5"><button type="button" data-go="5"><span class="n">Krok 5</span><span class="t">Pobierz plik</span></button></li>
+    </ol>
+  </nav>
+
+  <!-- KROK 1 -->
+  <section class="step" id="step1" aria-labelledby="h1s">
+    <div class="shead"><span class="n">Krok 1 z 5</span><h2 id="h1s">Wczytaj swoją tabelę z defibrylatorami</h2>
+      <p class="muted">Może to być plik z Excela albo eksport z innego programu. Nazwy kolumn mogą być dowolne, dopasujemy je w następnym kroku.</p></div>
+    <label class="drop" id="drop" for="file">
+      <input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.json,.geojson,.xml,.kml,.gml,text/csv,application/json,application/xml,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+      <svg class="ico" viewBox="0 0 48 48" aria-hidden="true"><path d="M12 6h17l9 9v27H12z" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M29 6v9h9M24 37V22m-7 7 7-7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="big">Kliknij, żeby wybrać plik</span>
+      <span class="muted">albo przeciągnij go tutaj</span>
+      <span class="muted" style="font-size:0.92rem">Excel (.xlsx), CSV, JSON, XML, GML, KML</span>
+    </label>
+    <div class="note err" id="load-error" hidden></div>
+    <p class="muted">Nie masz pliku pod ręką? <button class="btn link" id="load-sample" type="button">Zobacz, jak to działa na przykładzie</button></p>
+
+    <div id="loaded" hidden style="display:grid;gap:14px">
+      <div class="note ok"><b class="t" id="loaded-title"></b><span id="loaded-text"></span></div>
+      <div class="note warn" id="sample-note" hidden><span>To jest <b>przykładowa tabela gminy z fikcyjnymi danymi</b>. Możesz przejść przez wszystkie kroki, żeby zobaczyć, jak działa konwerter, a potem wczytać swój plik.</span></div>
+      <details class="more">
+        <summary>Pokaż początek tabeli</summary>
+        <div class="in"><div class="scroll" style="max-height:300px"><table class="preview" id="preview"></table></div></div>
+      </details>
+      <details class="more" id="adv">
+        <summary>Tabela wczytała się źle?</summary>
+        <div class="in">
+          <div id="sheet-wrap" hidden><label class="lbl" for="sheet" id="sheet-label">Który arkusz wczytać?</label><select id="sheet"></select></div>
+          <div><label class="lbl" for="header-row">W którym wierszu są nazwy kolumn?</label>
+            <input type="number" id="header-row" min="1" value="1" style="max-width:140px">
+            <p class="muted" style="font-size:0.92rem;margin-top:6px">Zmień, jeśli nad tabelą jest tytuł albo puste wiersze.</p></div>
+        </div>
+      </details>
+    </div>
+    <div class="navbar"><span class="hint" id="hint1">Najpierw wybierz plik.</span><button class="btn primary big" type="button" data-go="2" id="next1" disabled>Dalej</button></div>
+  </section>
+
+  <!-- KROK 2 -->
+  <section class="step" id="step2" aria-labelledby="h2s" hidden>
+    <div class="shead"><span class="n">Krok 2 z 5</span><h2 id="h2s">Wskaż, gdzie w Twojej tabeli są potrzebne dane</h2>
+      <p class="muted">Większość kolumn rozpoznaliśmy sami. Obowiązkowe są tylko 4 dane: numer urządzenia, dwie współrzędne i nazwa miejsca. Pod każdym polem widać, co trafi do pliku.</p></div>
+    <div class="note info" id="map-note" hidden></div>
+    <div class="progress"><div class="row" style="justify-content:space-between"><b id="req-progress-text"></b><span class="muted" id="req-progress-sub"></span></div><div class="meter" id="req-meter"></div></div>
+    <h3>Dane obowiązkowe</h3>
+    <div class="cards" id="cards-req"></div>
+    <div class="row" style="justify-content:space-between;margin-top:8px"><h3>Dane zalecane</h3><span class="muted" id="rec-progress"></span></div>
+    <p class="muted" style="margin-top:-12px">Nie są obowiązkowe, ale bardzo pomagają: adres, dokładne miejsce, godziny i stan urządzenia widzi ratownik i osoba szukająca AED.</p>
+    <div class="cards" id="cards-rec"></div>
+    <details class="more" id="opt-wrap">
+      <summary><span id="opt-title">Dane opcjonalne</span></summary>
+      <div class="in"><p class="muted">Uzupełnij, jeśli masz je w tabeli. Numer seryjny, kod UDI i powiązania z innymi rejestrami pomagają rozpoznać, że to samo urządzenie zgłosiło kilka instytucji.</p><div class="cards" id="cards-opt"></div></div>
+    </details>
+    <details class="more">
+      <summary>Zapisz albo wczytaj ustawienia dopasowania</summary>
+      <div class="in">
+        <p class="muted">Przy następnej aktualizacji wczytaj zapisany plik ustawień, a kolumny dopasują się same. Ta przeglądarka też je zapamiętuje.</p>
+        <div class="row">
+          <button class="btn" id="map-save" type="button">Zapisz ustawienia do pliku</button>
+          <label class="btn" for="map-file">Wczytaj ustawienia z pliku<input type="file" id="map-file" accept=".json,application/json" hidden></label>
+          <button class="btn" id="map-auto" type="button">Dopasuj od nowa automatycznie</button>
+        </div>
+      </div>
+    </details>
+    <div class="navbar"><button class="btn big" type="button" data-go="1">Wstecz</button><span class="hint" id="hint2"></span><button class="btn primary big" type="button" data-go="3" id="next2">Dalej</button></div>
+  </section>
+
+  <!-- KROK 3 -->
+  <section class="step" id="step3" aria-labelledby="h3s" hidden>
+    <div class="shead"><span class="n">Krok 3 z 5</span><h2 id="h3s">Wyjaśnij określenia z Twojej tabeli</h2>
+      <p class="muted">W kilku polach dane.gov.pl przyjmuje tylko wybrane odpowiedzi. Powiedz nam, co znaczą słowa użyte w Twojej tabeli. Tam, gdzie się dało, wybraliśmy już propozycję. Sprawdź ją.</p></div>
+    <div id="vmaps" class="cards"></div>
+    <div class="navbar"><button class="btn big" type="button" data-go="2">Wstecz</button><span class="hint" id="hint3"></span><button class="btn primary big" type="button" data-go="4">Dalej</button></div>
+  </section>
+
+  <!-- KROK 4 -->
+  <section class="step" id="step4" aria-labelledby="h4s" hidden>
+    <div class="shead"><span class="n">Krok 4 z 5</span><h2 id="h4s">Sprawdź i popraw błędy</h2>
+      <p class="muted">Sprawdziliśmy każdą wartość. Popraw błędy tutaj albo w swojej tabeli i wczytaj ją ponownie. Urządzenia z błędami nie trafią do pliku.</p></div>
+    <div class="progress"><span class="big-num" id="res-title"></span><div class="meter" id="res-meter"></div><span class="muted" id="res-sub"></span></div>
+    <div class="note warn" id="res-common" hidden></div>
+    <div id="devs" class="cards"></div>
+    <div class="pager" id="pager"></div>
+    <details class="more" id="warn-wrap" hidden>
+      <summary><span id="warn-title"></span></summary>
+      <div class="in"><p class="muted">Te uwagi nie blokują publikacji, ale warto je sprawdzić.</p><div id="warns" class="cards"></div></div>
+    </details>
+    <details class="more" id="fixes-wrap" hidden>
+      <summary><span id="fixes-title"></span></summary>
+      <div class="in"><p class="muted">Zapisy, które zamieniliśmy na wymagany format. Nie musisz nic robić.</p><ul class="plain" id="fixes"></ul></div>
+    </details>
+    <div class="navbar"><button class="btn big" type="button" data-go="3">Wstecz</button><span class="hint" id="hint4"></span><button class="btn primary big" type="button" data-go="5">Dalej</button></div>
+  </section>
+
+  <!-- KROK 5 -->
+  <section class="step" id="step5" aria-labelledby="h5s" hidden>
+    <div class="shead"><span class="n">Krok 5 z 5</span><h2 id="h5s">Pobierz plik i opublikuj go</h2></div>
+    <div class="dlbox" id="dlbox">
+      <b class="big-num" id="dl-title"></b>
+      <span id="dl-text"></span>
+      <button class="btn primary big" id="dl-csv" type="button">Pobierz plik do dane.gov.pl</button>
+    </div>
+    <div class="card">
+      <h3>Zapisz ustawienia na następny raz</h3>
+      <p class="muted">Przy kolejnej aktualizacji wczytasz ten plik w kroku 2 i nie będziesz wskazywać kolumn od nowa.</p>
+      <div><button class="btn" id="dl-map" type="button">Zapisz ustawienia dopasowania</button></div>
+    </div>
+    <div class="card">
+      <h3>Jak opublikować plik na dane.gov.pl</h3>
+      <ol class="howto">
+        <li>Zaloguj się na <a href="https://dane.gov.pl" target="_blank" rel="noopener">dane.gov.pl</a> kontem dostawcy danych swojej instytucji.</li>
+        <li>Dodaj nowy zbiór danych. Opis zbioru możesz skopiować poniżej.</li>
+        <li>Dodaj pobrany plik jako zasób tego zbioru. Przy kolejnej aktualizacji podmień plik w tym samym zbiorze.</li>
+      </ol>
+      <div class="grid2" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+        <div><label class="lbl" for="meta-org">Nazwa Twojej instytucji</label><input id="meta-org" type="text" placeholder="np. Urząd Gminy Przykładowo"></div>
+        <div><label class="lbl" for="meta-freq">Jak często będziesz aktualizować dane?</label>
+          <select id="meta-freq"><option>co miesiąc</option><option>co kwartał</option><option>co pół roku</option><option>po każdej zmianie</option></select></div>
+      </div>
+      <pre class="snippet" id="meta-out"></pre>
+      <div><button class="btn" id="copy-meta" type="button">Kopiuj opis zbioru</button></div>
+    </div>
+    <details class="more">
+      <summary>Więcej możliwości</summary>
+      <div class="in">
+        <label class="check"><input type="checkbox" id="include-bad"><span>Dołącz do pliku także urządzenia z błędami. Nie zalecamy: taki plik nie spełni standardu.</span></label>
+        <div class="row">
+          <button class="btn" id="dl-json" type="button">Pobierz w formacie JSON</button>
+          <button class="btn" id="dl-report" type="button">Pobierz listę błędów</button>
+          <button class="btn" id="copy-csv" type="button">Kopiuj zawartość pliku</button>
+        </div>
+      </div>
+    </details>
+    <div class="navbar"><button class="btn big" type="button" data-go="4">Wstecz</button><span class="hint"></span><button class="btn big" type="button" id="restart">Wczytaj kolejny plik</button></div>
+  </section>
+
+  <footer>
+    <span>Plik powstaje zgodnie ze standardem danych AED w wersji <span id="std-ver"></span>.</span>
+    <span>Konwerter działa także bez internetu, po zapisaniu tej strony na dysku.</span>
+  </footer>
+</div>
+<div class="toast" id="toast" hidden role="status" aria-live="polite"></div>
+
+<script>
+/*@@STANDARD@@*/
+</script>
+<script>
+/*@@WALIDATOR@@*/
+</script>
+<script>
+/*@@MAPPER@@*/
+</script>
+<script>
+/*@@APP@@*/
+</script>
