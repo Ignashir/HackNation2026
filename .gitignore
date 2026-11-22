@@ -3,3 +3,7 @@ solution/sql/dev
 .env
 __pycache__/
 .pytest_cache/
+
+solution/docs/backend_integration_plan.md
+solution/standard/aed/1.0/AED_wzorcowy_zakres_danych_v1.0.xlsx
+solution/standard/aed/tools/
