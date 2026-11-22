@@ -47,9 +47,13 @@
   ol { margin: 8px 0 0; padding-left: 20px; }
   li { margin-bottom: 4px; }
   code { font-size: .88em; overflow-wrap: anywhere; }
-  .qr { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-  #qr { background: #fff; padding: 10px; border-radius: 8px; line-height: 0; }
-  #qr img, #qr canvas { width: 160px; height: 160px; }
+  .table-wrap { overflow-x: auto; margin-top: 8px; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 10px 8px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 600; }
+  tbody tr:last-child td { border-bottom: 0; }
+  td code, code.pw { user-select: all; }
+  td code { overflow-wrap: anywhere; }
   .hidden { display: none; }
 </style>
 </head>
@@ -104,7 +108,6 @@
 
     <h2>2. AED</h2>
     <div class="grid">
-      <a class="btn" data-host="aed" href="#"><strong>AED map</strong><span>all AED sites on a map</span></a>
       <a class="btn" data-host="m" href="#"><strong>AED finder (mobile)</strong><span>nearest AED, works offline</span></a>
       <a class="btn" data-host="" data-path="/pl/aed" href="#"><strong>National AED list</strong><span>portal page, map and table</span></a>
       <a class="btn" data-host="konwerter" href="#"><strong>AED data converter</strong><span>convert a register to the standard</span></a>
@@ -115,20 +118,28 @@
       <a class="btn" data-host="" data-path="/pl" href="#"><strong>Portal</strong><span>home page</span></a>
       <a class="btn" data-host="" data-path="/pl/dataset" href="#"><strong>Data</strong><span>datasets and files</span></a>
       <a class="btn" data-host="admin" href="#"><strong>Admin panel</strong><span>providers and datasets</span></a>
-      <a class="btn" data-host="cms" href="#"><strong>CMS</strong><span>portal content (Wagtail)</span></a>
     </div>
 
-    <h2>4. Team tools</h2>
-    <div class="grid">
-      <a class="btn" data-host="mail" href="#"><strong>E-mail</strong><span>messages the portal sends (login)</span></a>
-      <a class="btn" data-host="flower" href="#"><strong>Flower</strong><span>background tasks (login)</span></a>
-    </div>
-
-    <h2>Open this page on a phone</h2>
-    <div class="card qr">
-      <div id="qr" aria-label="QR code with this page and the laptop address"></div>
-      <p class="muted" style="flex:1 1 200px;margin:0">Scan to open these buttons on a phone with the address already
-        filled in. Link: <code id="share"></code></p>
+    <h2>Admin panel logins</h2>
+    <div class="card">
+      <p class="muted">Demo accounts of the AED register providers, for the <strong>Admin panel</strong> above.
+        Each one manages its own institution's AED register.</p>
+      <p>Password for all accounts: <code class="pw">AedTest123!</code></p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th scope="col">Institution</th><th scope="col">Login</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Koordynator Krajowego Wykazu AED</td><td><code>aed.koordynator@mcod.local</code></td></tr>
+            <tr><td>Baza AED HackNation (demo)</td><td><code>aed.baza@mcod.local</code></td></tr>
+            <tr><td>Urząd Miasta Krosna</td><td><code>aed.krosno@mcod.local</code></td></tr>
+            <tr><td>Urząd Miejski w Przemyślu</td><td><code>aed.przemysl@mcod.local</code></td></tr>
+            <tr><td>Urząd Miasta Marki</td><td><code>aed.marki@mcod.local</code></td></tr>
+            <tr><td>Urząd m.st. Warszawy</td><td><code>aed.warszawa@mcod.local</code></td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <p class="muted" style="margin-top:24px">Nothing loads? Try the certificate button first: it uses plain http.
@@ -137,7 +148,6 @@
   </div>
 </main>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
   const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
   const STORE = 'aed-demo-ip';
@@ -170,12 +180,6 @@
       const host = a.dataset.host ? `${a.dataset.host}.${domain}` : domain;
       a.href = `https://${host}${a.dataset.path || '/'}`;
     }
-
-    document.getElementById('share').textContent = url.href;
-    const box = document.getElementById('qr');
-    box.textContent = '';
-    if (window.QRCode) new QRCode(box, { text: url.href, width: 320, height: 320, correctLevel: QRCode.CorrectLevel.M });
-    else box.textContent = 'QR code unavailable offline';
   }
 
   document.getElementById('ip-form').addEventListener('submit', (e) => { e.preventDefault(); apply(input.value); });
