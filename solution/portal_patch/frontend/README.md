@@ -4,7 +4,7 @@ New files: copy `src/` over `codebase/frontend_latest/src/`.
 
 | File | What |
 |---|---|
-| `src/app/pages/aed-register/*` | Page `/pl/aed` "Krajowy wykaz AED": stats, providers, download/changes/API links, map + table of the national list (reuses `shared/map` and `shared/resource-table-no-filters`) |
+| `src/app/pages/aed-register/*` | Page `/pl/aed` "Krajowy wykaz AED", laid out like the DGA list of protected data (`pages/dga-information-point/dga-information-point-table-page`): title, view/download counts, download buttons, the portal's search and filters, table and map of the national list resource, usage conditions; below it the related files (changes, all rows, conflicts), the API link and the providers (reuses `shared/resource-table-no-filters`, `shared/resource-filters`, `shared/map`, `shared/download-link`, `dataset-restrictions`) |
 | `src/app/services/standards.service.ts` | `GET /standards/:code/aggregated` (backend `mcod.standards.views.StandardAggregateView`) |
 
 Edits to existing files (small, apply by hand):
