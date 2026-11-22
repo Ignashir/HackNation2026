@@ -1,0 +1,2033 @@
+diff --git a/data/standards/aed/1.0/schema.json b/data/standards/aed/1.0/schema.json
+new file mode 100644
+index 0000000..76966f2
+--- /dev/null
++++ b/data/standards/aed/1.0/schema.json
+@@ -0,0 +1,403 @@
++{
++  "$comment": "AED register standard v1.0. Frictionless Table Schema (validated by tableschema/goodtables, as used by dane.gov.pl) plus x-aed annotations used for mapping suggestions and documentation. One row = one AED device.",
++  "x-standard": {
++    "code": "aed",
++    "version": "1.0",
++    "title_pl": "Rejestr AED – standard danych",
++    "title_en": "AED register – data standard",
++    "description_pl": "Lokalizacje i atrybuty automatycznych defibrylatorów zewnętrznych (AED). Jeden wiersz to jedno urządzenie. Dostawca danych odpowiada za ich aktualność i poprawność.",
++    "description_en": "Locations and attributes of automated external defibrillators (AED). One row is one device. The data provider is accountable for keeping it current and correct.",
++    "crs": "EPSG:4326",
++    "portal_geo": { "l": "lon", "b": "lat", "label": "name" },
++    "composite_inputs": {
++      "point": {
++        "produces": ["lat", "lon"],
++        "description_pl": "Jedna kolumna z punktem: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, wariant {\"lat\":..,\"long\":..} lub tekst \"lat, lon\".",
++        "description_en": "One column holding a point: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, the {\"lat\":..,\"long\":..} variant, or the text \"lat, lon\".",
++        "synonyms": ["geometry", "geometria", "geom", "point", "punkt", "location_point", "wspolrzedne", "współrzędne", "coordinates"]
++      }
++    }
++  },
++  "fields": [
++    {
++      "name": "aed_id",
++      "type": "string",
++      "constraints": { "required": true, "unique": true, "pattern": "[A-Za-z0-9._:/-]{1,64}" },
++      "x-aed": {
++        "group": "identity", "level": "required",
++        "label_pl": "Identyfikator AED", "label_en": "AED identifier",
++        "description_pl": "Stały identyfikator urządzenia w rejestrze dostawcy. Nie zmienia się przy aktualizacjach pliku – na jego podstawie wykrywane są zmiany.",
++        "description_en": "Stable identifier of the device within the provider's register. It must not change between file updates; changes are detected by it.",
++        "example": "KRO-0001",
++        "synonyms": ["id", "aed_id", "numer id", "nr", "lp", "identyfikator", "id aed", "defibrillator_id", "id_defibrylatora", "kod"]
++      }
++    },
++    {
++      "name": "lat",
++      "type": "number",
++      "constraints": { "required": true, "minimum": 49.0, "maximum": 54.9 },
++      "x-aed": {
++        "group": "location", "level": "required", "detect": "lat_pl",
++        "label_pl": "Szerokość geograficzna", "label_en": "Latitude",
++        "description_pl": "Szerokość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 49,0 a 54,9.",
++        "description_en": "Latitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 49.0 and 54.9.",
++        "example": "49.718809",
++        "synonyms": ["lat", "latitude", "szerokość geograficzna", "szerokosc geograficzna", "szerokość", "szerokosc", "y", "wsp_y", "phi"]
++      }
++    },
++    {
++      "name": "lon",
++      "type": "number",
++      "constraints": { "required": true, "minimum": 14.1, "maximum": 24.2 },
++      "x-aed": {
++        "group": "location", "level": "required", "detect": "lon_pl",
++        "label_pl": "Długość geograficzna", "label_en": "Longitude",
++        "description_pl": "Długość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 14,1 a 24,2.",
++        "description_en": "Longitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 14.1 and 24.2.",
++        "example": "21.720344",
++        "synonyms": ["lon", "lng", "long", "longitude", "długość geograficzna", "dlugosc geograficzna", "długość", "dlugosc", "x", "wsp_x", "lambda"]
++      }
++    },
++    {
++      "name": "name",
++      "type": "string",
++      "constraints": { "required": true, "minLength": 2, "maxLength": 200 },
++      "x-aed": {
++        "group": "location", "level": "required",
++        "label_pl": "Nazwa miejsca", "label_en": "Site name",
++        "description_pl": "Nazwa obiektu, w którym znajduje się AED (np. szkoła, urząd, pływalnia). Wyświetlana jako etykieta na mapie. Nie wpisuj samego słowa „Defibrylator”.",
++        "description_en": "Name of the place where the AED is (e.g. school, town hall, swimming pool). Shown as the map label. Do not use just the word \"Defibrillator\".",
++        "example": "Zespół Krytych Pływalni",
++        "synonyms": ["name", "nazwa", "nazwa obiektu", "obiekt", "lokalizacja", "miejsce", "location_object_name", "nazwa miejsca", "site", "site_name"]
++      }
++    },
++    {
++      "name": "address",
++      "type": "string",
++      "x-aed": {
++        "group": "address", "level": "recommended",
++        "label_pl": "Adres (pełny)", "label_en": "Address (full)",
++        "description_pl": "Pełny adres w jednym polu, jeśli nie jest rozbity na części.",
++        "description_en": "Full address in one field, if it is not split into parts.",
++        "example": "ul. Jasna 1, 38-400 Krosno",
++        "synonyms": ["adres", "address", "adres obiektu", "full_address", "adres pełny"]
++      }
++    },
++    {
++      "name": "street",
++      "type": "string",
++      "x-aed": {
++        "group": "address", "level": "optional",
++        "label_pl": "Ulica", "label_en": "Street",
++        "description_pl": "Nazwa ulicy z przedrostkiem (ul., al., pl.).",
++        "description_en": "Street name with its prefix (ul., al., pl.).",
++        "example": "ul. Jasna",
++        "synonyms": ["ulica", "street", "ul", "nazwa ulicy"]
++      }
++    },
++    {
++      "name": "house_number",
++      "type": "string",
++      "x-aed": {
++        "group": "address", "level": "optional",
++        "label_pl": "Numer budynku", "label_en": "House number",
++        "description_pl": "Numer budynku, może zawierać literę (np. 5A).",
++        "description_en": "Building number, may contain a letter (e.g. 5A).",
++        "example": "5A",
++        "synonyms": ["numer domu", "nr domu", "numer budynku", "home_number", "house_number", "nr budynku", "numer"]
++      }
++    },
++    {
++      "name": "postcode",
++      "type": "string",
++      "constraints": { "pattern": "[0-9]{2}-[0-9]{3}" },
++      "x-aed": {
++        "group": "address", "level": "recommended", "detect": "postcode_pl",
++        "label_pl": "Kod pocztowy", "label_en": "Postcode",
++        "description_pl": "Kod pocztowy w formacie NN-NNN.",
++        "description_en": "Postcode in the NN-NNN format.",
++        "example": "38-400",
++        "synonyms": ["kod pocztowy", "kod", "postcode", "postal_code", "zip", "pna"]
++      }
++    },
++    {
++      "name": "city",
++      "type": "string",
++      "x-aed": {
++        "group": "address", "level": "recommended",
++        "label_pl": "Miejscowość", "label_en": "City / locality",
++        "description_pl": "Nazwa miejscowości.",
++        "description_en": "Name of the city or locality.",
++        "example": "Krosno",
++        "synonyms": ["miejscowość", "miejscowosc", "miasto", "city", "town", "locality", "gmina"]
++      }
++    },
++    {
++      "name": "teryt",
++      "type": "string",
++      "constraints": { "pattern": "[0-9]{7}" },
++      "x-aed": {
++        "group": "address", "level": "optional",
++        "label_pl": "Kod TERYT gminy (TERC)", "label_en": "Commune TERYT code (TERC)",
++        "description_pl": "7-cyfrowy kod gminy z rejestru TERYT (TERC), np. 1861011 (Krosno).",
++        "description_en": "7-digit commune code from the TERYT register (TERC), e.g. 1861011 (Krosno).",
++        "example": "1861011",
++        "synonyms": ["teryt", "terc", "kod teryt", "kod gminy"]
++      }
++    },
++    {
++      "name": "placement",
++      "type": "string",
++      "x-aed": {
++        "group": "access", "level": "recommended",
++        "label_pl": "Dokładne miejsce", "label_en": "Exact placement",
++        "description_pl": "Gdzie dokładnie wisi AED (np. „hol główny przy recepcji”, „ściana zewnętrzna od strony parkingu”).",
++        "description_en": "Where exactly the AED hangs (e.g. \"main hall by the reception\", \"outer wall facing the car park\").",
++        "example": "Hol główny przy recepcji",
++        "synonyms": ["dokładne miejsce", "miejsce zawieszenia", "opis lokalizacji", "location_description", "placement", "umiejscowienie", "opis"]
++      }
++    },
++    {
++      "name": "indoor",
++      "type": "boolean",
++      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes", "wewnątrz", "wewnatrz"],
++      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no", "zewnątrz", "zewnatrz"],
++      "x-aed": {
++        "group": "access", "level": "recommended",
++        "label_pl": "Wewnątrz budynku", "label_en": "Indoors",
++        "description_pl": "tak – AED jest wewnątrz budynku; nie – na zewnątrz.",
++        "description_en": "yes – the AED is inside a building; no – outside.",
++        "example": "tak",
++        "synonyms": ["wewnątrz", "w budynku", "indoor", "device_location", "lokalizacja urządzenia"]
++      }
++    },
++    {
++      "name": "floor",
++      "type": "string",
++      "x-aed": {
++        "group": "access", "level": "optional",
++        "label_pl": "Piętro", "label_en": "Floor",
++        "description_pl": "Kondygnacja (0 = parter, -1 = piwnica).",
++        "description_en": "Floor level (0 = ground floor, -1 = basement).",
++        "example": "0",
++        "synonyms": ["piętro", "pietro", "kondygnacja", "floor", "level"]
++      }
++    },
++    {
++      "name": "access",
++      "type": "string",
++      "constraints": { "enum": ["yes", "customers", "permit", "private", "no"] },
++      "x-aed": {
++        "group": "access", "level": "recommended",
++        "label_pl": "Dostępność", "label_en": "Access",
++        "description_pl": "yes – publicznie dostępny; customers – dla klientów/gości obiektu; permit – za zgodą; private – prywatny; no – niedostępny.",
++        "description_en": "yes – public; customers – for the site's customers or visitors; permit – with permission; private – private; no – not accessible.",
++        "example": "yes",
++        "synonyms": ["dostępność", "dostepnosc", "dostęp", "access", "device_public_access", "publiczny"]
++      }
++    },
++    {
++      "name": "opening_hours",
++      "type": "string",
++      "x-aed": {
++        "group": "access", "level": "recommended", "detect": "hours",
++        "label_pl": "Godziny dostępności", "label_en": "Opening hours",
++        "description_pl": "Kiedy AED jest dostępny, w składni OSM opening_hours (np. „Mo-Fr 08:00-16:00”, „24/7”).",
++        "description_en": "When the AED is accessible, in OSM opening_hours syntax (e.g. \"Mo-Fr 08:00-16:00\", \"24/7\").",
++        "example": "Mo-Fr 08:00-16:00",
++        "synonyms": ["godziny", "godziny otwarcia", "godziny dostępności", "dostępny w godzinach", "opening_hours", "device_access_description", "hours"]
++      }
++    },
++    {
++      "name": "is_24_7",
++      "type": "boolean",
++      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
++      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "x-aed": {
++        "group": "access", "level": "recommended",
++        "label_pl": "Dostępny całodobowo", "label_en": "Available 24/7",
++        "description_pl": "tak – dostępny 24 godziny na dobę, 7 dni w tygodniu.",
++        "description_en": "yes – accessible 24 hours a day, 7 days a week.",
++        "example": "nie",
++        "synonyms": ["całodobowy", "całodobowo", "24/7", "24h", "device_availability", "dostępny całą dobę"]
++      }
++    },
++    {
++      "name": "cabinet_locked",
++      "type": "boolean",
++      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
++      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "x-aed": {
++        "group": "access", "level": "optional",
++        "label_pl": "Szafka zamknięta", "label_en": "Cabinet locked",
++        "description_pl": "tak – szafka wymaga otwarcia (kod, klucz).",
++        "description_en": "yes – the cabinet must be unlocked (code, key).",
++        "example": "nie",
++        "synonyms": ["zamknięta", "szafka zamknięta", "locked", "cabinet_locked"]
++      }
++    },
++    {
++      "name": "unlock_method",
++      "type": "string",
++      "constraints": { "enum": ["none", "code_112", "key", "staff"] },
++      "x-aed": {
++        "group": "access", "level": "optional",
++        "label_pl": "Sposób otwarcia", "label_en": "Unlock method",
++        "description_pl": "none – bez zabezpieczeń; code_112 – kod podaje dyspozytor 112; key – klucz; staff – przez personel obiektu.",
++        "description_en": "none – unlocked; code_112 – code given by the 112 dispatcher; key – key; staff – via the site's staff.",
++        "example": "none",
++        "synonyms": ["sposób otwarcia", "otwarcie", "unlock", "unlock_method"]
++      }
++    },
++    {
++      "name": "manufacturer",
++      "type": "string",
++      "x-aed": {
++        "group": "device", "level": "optional",
++        "label_pl": "Producent", "label_en": "Manufacturer",
++        "description_pl": "Producent urządzenia.",
++        "description_en": "Device manufacturer.",
++        "example": "Philips",
++        "synonyms": ["producent", "manufacturer", "marka", "brand"]
++      }
++    },
++    {
++      "name": "model",
++      "type": "string",
++      "x-aed": {
++        "group": "device", "level": "optional",
++        "label_pl": "Model", "label_en": "Model",
++        "description_pl": "Model urządzenia.",
++        "description_en": "Device model.",
++        "example": "HeartStart FRx",
++        "synonyms": ["model", "typ", "model urządzenia", "rodzaj"]
++      }
++    },
++    {
++      "name": "serial_number",
++      "type": "string",
++      "x-aed": {
++        "group": "device", "level": "optional",
++        "label_pl": "Numer seryjny", "label_en": "Serial number",
++        "description_pl": "Numer seryjny z etykiety urządzenia (lub z kodu UDI, identyfikator (21)).",
++        "description_en": "Serial number from the device label (or from the UDI code, application identifier (21)).",
++        "example": "B21G-01234",
++        "synonyms": ["numer seryjny", "nr seryjny", "serial", "serial_number", "sn"]
++      }
++    },
++    {
++      "name": "udi_di",
++      "type": "string",
++      "constraints": { "pattern": "[0-9]{14}" },
++      "x-aed": {
++        "group": "device", "level": "optional",
++        "label_pl": "UDI-DI (GTIN)", "label_en": "UDI-DI (GTIN)",
++        "description_pl": "14-cyfrowy identyfikator modelu z kodu UDI na urządzeniu (identyfikator (01)).",
++        "description_en": "14-digit model identifier from the UDI code on the device (application identifier (01)).",
++        "example": "00884838034567",
++        "synonyms": ["udi", "udi_di", "gtin", "kod udi"]
++      }
++    },
++    {
++      "name": "status",
++      "type": "string",
++      "constraints": { "enum": ["active", "out_of_service", "removed", "unknown"] },
++      "x-aed": {
++        "group": "device", "level": "recommended",
++        "label_pl": "Stan urządzenia", "label_en": "Device status",
++        "description_pl": "active – sprawny; out_of_service – niesprawny/w serwisie; removed – zdjęty; unknown – nieznany.",
++        "description_en": "active – working; out_of_service – broken or in service; removed – taken away; unknown – not known.",
++        "example": "active",
++        "synonyms": ["stan", "status", "sprawny", "stan urządzenia"]
++      }
++    },
++    {
++      "name": "paediatric_capable",
++      "type": "boolean",
++      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
++      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "x-aed": {
++        "group": "device", "level": "optional",
++        "label_pl": "Tryb pediatryczny", "label_en": "Paediatric capable",
++        "description_pl": "tak – urządzenie ma elektrody lub tryb dla dzieci.",
++        "description_en": "yes – the device has paediatric pads or mode.",
++        "example": "tak",
++        "synonyms": ["pediatryczny", "dla dzieci", "paediatric", "pediatric"]
++      }
++    },
++    {
++      "name": "pads_expiry",
++      "type": "date",
++      "x-aed": {
++        "group": "maintenance", "level": "recommended",
++        "label_pl": "Ważność elektrod", "label_en": "Pads expiry",
++        "description_pl": "Data ważności elektrod (RRRR-MM-DD).",
++        "description_en": "Pads expiry date (YYYY-MM-DD).",
++        "example": "2027-03-31",
++        "synonyms": ["ważność elektrod", "data ważności elektrod", "elektrody", "pads_expiry"]
++      }
++    },
++    {
++      "name": "battery_expiry",
++      "type": "date",
++      "x-aed": {
++        "group": "maintenance", "level": "recommended",
++        "label_pl": "Ważność baterii", "label_en": "Battery expiry",
++        "description_pl": "Data ważności baterii (RRRR-MM-DD).",
++        "description_en": "Battery expiry date (YYYY-MM-DD).",
++        "example": "2028-01-31",
++        "synonyms": ["ważność baterii", "data ważności baterii", "bateria", "battery_expiry"]
++      }
++    },
++    {
++      "name": "last_verified",
++      "type": "date",
++      "x-aed": {
++        "group": "maintenance", "level": "recommended",
++        "label_pl": "Data ostatniej weryfikacji", "label_en": "Last verified",
++        "description_pl": "Kiedy ostatnio sprawdzono na miejscu, że AED jest i działa (RRRR-MM-DD).",
++        "description_en": "When someone last checked on site that the AED is there and working (YYYY-MM-DD).",
++        "example": "2026-10-15",
++        "synonyms": ["data weryfikacji", "ostatnia weryfikacja", "data przeglądu", "przegląd", "last_verified", "check_date"]
++      }
++    },
++    {
++      "name": "operator",
++      "type": "string",
++      "x-aed": {
++        "group": "contact", "level": "optional",
++        "label_pl": "Opiekun", "label_en": "Operator",
++        "description_pl": "Podmiot lub osoba opiekująca się urządzeniem na miejscu.",
++        "description_en": "Organisation or person looking after the device on site.",
++        "example": "Zespół Krytych Pływalni w Krośnie",
++        "synonyms": ["opiekun", "operator", "zarządca", "administrator", "właściciel"]
++      }
++    },
++    {
++      "name": "contact_phone",
++      "type": "string",
++      "x-aed": {
++        "group": "contact", "level": "optional",
++        "label_pl": "Telefon kontaktowy", "label_en": "Contact phone",
++        "description_pl": "Telefon do opiekuna (nie do osób prywatnych).",
++        "description_en": "Phone of the operator (not of private persons).",
++        "example": "+48 13 000 00 00",
++        "synonyms": ["telefon", "tel", "phone", "nr telefonu"]
++      }
++    },
++    {
++      "name": "notes",
++      "type": "string",
++      "x-aed": {
++        "group": "other", "level": "optional",
++        "label_pl": "Uwagi", "label_en": "Notes",
++        "description_pl": "Dodatkowe informacje.",
++        "description_en": "Additional information.",
++        "example": "",
++        "synonyms": ["uwagi", "notes", "komentarz", "informacje dodatkowe"]
++      }
++    }
++  ],
++  "primaryKey": "aed_id",
++  "missingValues": ["", "-"]
++}
+diff --git a/data/standards/aed/import/openaedmap.json b/data/standards/aed/import/openaedmap.json
+new file mode 100644
+index 0000000..04f50ee
+--- /dev/null
++++ b/data/standards/aed/import/openaedmap.json
+@@ -0,0 +1,39 @@
++{
++  "$comment": "AED register built by our importer (solution/importer) from OpenAEDMap (OpenStreetMap), exported in AED standard 1.0 (aed_import.export_standard). Load with: manage.py load_aed_providers --config data/standards/aed/import/openaedmap.json",
++  "standard": {"code": "aed", "version": "1.0"},
++  "coordinator": {
++    "title": "Koordynator Krajowego Wykazu AED (placeholder)",
++    "slug": "koordynator-krajowego-wykazu-aed",
++    "institution_type": "other",
++    "city": "Warszawa",
++    "postal_code": "00-001",
++    "street": "-",
++    "street_number": "-",
++    "email": "aed-koordynator@mcod.local",
++    "representative": "aed.koordynator@mcod.local"
++  },
++  "providers": [
++    {
++      "slug": "hacknation",
++      "source": "https://openaedmap.org/api/v1/countries/PL.geojson",
++      "institution": {
++        "title": "Rejestr AED – HackNation (dane demonstracyjne)",
++        "institution_type": "other",
++        "city": "Warszawa",
++        "street": "-",
++        "street_number": "-",
++        "postal_code": "00-001",
++        "email": "aed.hacknation@mcod.local"
++      },
++      "dataset": {
++        "title": "Defibrylatory AED w Polsce – OpenStreetMap / OpenAEDMap (standard AED 1.0)",
++        "license": "ODbL",
++        "update_frequency": "daily",
++        "notes": "Lokalizacje 18 310 defibrylatorów AED w Polsce zebrane z OpenAEDMap (dane OpenStreetMap), ujednolicone do standardu danych AED 1.0 przez importer HackNation (jeden wiersz = jedno miejsce z AED; identyfikator aed_id jest stały między aktualizacjami). Gdy OpenStreetMap nie podaje nazwy miejsca, w kolumnie name użyto opisu umiejscowienia lub adresu. Dane © współtwórcy OpenStreetMap, licencja ODbL 1.0 (https://www.openstreetmap.org/copyright). UWAGA: zbiór demonstracyjny – licencja ODbL nie jest dostępna w portalu dane.gov.pl, więc tych danych nie należy publikować w produkcyjnym portalu bez zgody i dostawcy przyjmującego odpowiedzialność."
++      },
++      "file": "openaedmap_pl.csv",
++      "file_description": "18 310 AED w standardzie AED 1.0, eksport z ujednoliconej bazy (solution/sql) po imporcie OpenAEDMap. Dane © współtwórcy OpenStreetMap, ODbL 1.0.",
++      "representative": "aed.hacknation@mcod.local"
++    }
++  ]
++}
+diff --git a/data/standards/aed/providers/krosno.csv b/data/standards/aed/providers/krosno.csv
+new file mode 100644
+index 0000000..f03db39
+--- /dev/null
++++ b/data/standards/aed/providers/krosno.csv
+@@ -0,0 +1,22 @@
++Długość geograficzna,Szerokość geograficzna, Nazwa, Lokalizacja, Adres, Numer Id
++21.72034402175176,49.718809346153336,"Defibrylator","Zespół  Krytych Pływalni","ul. Jasna, 38-400 Krosno","1"
++21.71133598253567,49.719088753029276,"Defibrylator","Kampus Sportowo-dydaktyczny, portiernia","ul. Stanisława Wyspiańskiego 20, 38-400 Krosno","2"
++21.715090873839404,49.72174399261284,"Defibrylator","OSP Turaszówka","ul. Rzeszowska, 38-400 Krosno","3"
++21.749909495737537,49.706695518375945,"Defibrylator","OSP Białobrzegi","ul. Mikołaja Kopernika 17, 38-400 Krosno","4"
++21.75611258614517,49.69465763621457,"Defibrylator","Biuro Obsługi Klienta PGNiG","ul. Augusta Lewakowskiego 11, 38-400 Krosno","5"
++21.754469690437958,49.69638043514565,"Defibrylator","Regionalne Centrum Kultur Pogranicza","ul. Kolejowa 1, 38-400 Krosno","6"
++21.746365639365692,49.684573184910604,"Defibrylator","Kampus Techniczny, portiernia","ul. Franciszka Żwirki i Stanisława Wigury, 38-400 Krosno","7"
++21.765759126782257,49.694119216437514,"Defibrylator","Rektorat Państwowa Akademia Nauk Stosowanych","ul. Rynek 1, 38-400 Krosno","8"
++21.764685474955883,49.69275307484104,"Defibrylator","Państwowa Akademia Nauk Stosowanych","ul. Kazimierza Wielkiego 4, , 38-400 Krosno","9"
++21.76504873040803,49.692489647485594,"Defibrylator","Państwowa Akademia Nauk Stosowanych","ul. Kazimierza Wielkiego 4, , 38-400 Krosno","10"
++21.770282628403308,49.69599910236438,"Defibrylator","MPGK Krosno","ul. Aleksandra Fredry, 38-400 Krosno","11"
++21.783098460710946,49.70152282974884,"Defibrylator","Wojewódzki Szpital Podkarpacki w Krośnie","ul. Korczyńska 57, 38-400 Krosno","12"
++21.77560126708233,49.69222165953797,"Defibrylator","Hala Mosir Bursaki","ul. Bursaki 29, 38-400 Krosno","13"
++21.775953730106846,49.68610377238189,"Defibrylator","Zespół Krytych Pływalni","ul. Wojska Polskiego 45, 38-400 Krosno","14"
++21.773223600840677,49.67751294467392,"Defibrylator","Regionalna Dyrekcja Lasów Państwowych w Krośnie","ul. Bieszczadzka, 38-400 Krosno","15"
++21.77610827089202,49.67697483192884,"Defibrylator","Centrum Handlowe VIVO!","ul. Bieszczadzka 29, 38-400 Krosno","16"
++21.773166067646468,49.66947168313232,"Defibrylator","Kampus Politechniczny, portiernia","ul. Profesora Doktora Jerzego Dmochowskiego 12, 38-400 Krosno","17"
++21.763678690888117,49.66885045220135,"Defibrylator","OSP Suchodół","ul. Grunwaldzka, 38-400 Krosno","18"
++21.779275196328467,49.6840970026165,"Defibrylator","ZSP nr 4 im. Ignacego Łukasiewicza","ul. Bohaterów Westerplatte 20, 38-400 Krosno","19"
++21.771130722297613,49.683990115416655,"Defibrylator","Urząd Miasta Krosna","ul. Lwowska 28a, 38-400 Krosno","22"
++21.747439987244785,49.69557115700829,"Defibrylator","Dworzec","ul. Naftowa 23, 38-400 Krosno","23"
+diff --git a/data/standards/aed/providers/marki.csv b/data/standards/aed/providers/marki.csv
+new file mode 100644
+index 0000000..87dae2a
+--- /dev/null
++++ b/data/standards/aed/providers/marki.csv
+@@ -0,0 +1,9 @@
++"Długość geograficzna,Szerokość geograficzna, Nazwa, Lokalizacja, Adres, Numer Id"
++"52.326697, 21.107557,""Defibrylator"",""Urząd Miasta Marki "",""Al.. Piłsudskiego 95, 05-270 Marki"",""1"""
++"52.323960, 21.098185,""Defibrylator"",""Szkoła Podstawowa nr 1 "",""ul. Okólna 14, 05-270 Marki"",""2"""
++"52.317014, 21.104131,""Defibrylator"",""Szkoła Podstawowa nr 2 "",""ul. Szkolna 9, 05-270 Marki"",""3"""
++"52.340344, 21.113589,""Defibrylator"",""Szkoła Podstawowa nr 2 "",""ul. Pomnikowa 21, 05-270 Marki"",""4"""
++"52.322235, 21.105177,""Defibrylator"",""Filia-Szkoła Podstawowa nr 3 "",""ul. Duza 3, 05-270 Marki"",""5"""
++"52.322235, 21.105177,""Defibrylator"",""Zespół Szkół nr im. Jana Pawła II (liceum) "",""Al.. Piłsudskiego 96, 05-270 Marki"",""6"""
++"21.72034402175176,49.718809346153336,""Defibrylator"",""Szkoła Podstawowa nr 5 "",""ul. Wczsowa 5, 05-270 Marki"",""7"""
++"52.325445, 21.108176,""Defibrylator"",""Komisariat Policji "",""ul. Sportowa 5, 05-270 Marki"",""8"""
+diff --git a/data/standards/aed/providers/providers.json b/data/standards/aed/providers/providers.json
+new file mode 100644
+index 0000000..dd45cd9
+--- /dev/null
++++ b/data/standards/aed/providers/providers.json
+@@ -0,0 +1,50 @@
++{
++  "$comment": "Real AED providers on dane.gov.pl (metadata and files fetched 2026-11-21 from api.dane.gov.pl/1.4). Used by `manage.py load_aed_providers` to set up AED registers on a local portal.",
++  "standard": {"code": "aed", "version": "1.0"},
++  "coordinator": {
++    "title": "Koordynator Krajowego Wykazu AED (placeholder)",
++    "slug": "koordynator-krajowego-wykazu-aed",
++    "institution_type": "other",
++    "city": "Warszawa",
++    "postal_code": "00-001",
++    "street": "-",
++    "street_number": "-",
++    "email": "aed-koordynator@mcod.local",
++    "representative": "aed.koordynator@mcod.local"
++  },
++  "providers": [
++    {
++      "slug": "krosno",
++      "source": "https://dane.gov.pl/pl/dataset/3624",
++      "institution": {"title": "Urząd Miasta Krosna", "regon": "000526989", "institution_type": "local", "city": "Krosno", "street": "Lwowska", "street_number": "28A", "postal_code": "38-400", "email": "um@um.krosno.pl", "tel": "0048134743001", "website": "https://krosno.pl/"},
++      "dataset": {"title": "Defibrylatory zlokalizowane w Mieście Krosno", "license": "CC0 1.0", "update_frequency": "irregular"},
++      "file": "krosno.csv",
++      "representative": "aed.krosno@mcod.local"
++    },
++    {
++      "slug": "przemysl",
++      "source": "https://dane.gov.pl/pl/dataset/4581",
++      "institution": {"title": "Urząd Miejski w Przemyślu", "regon": "650900341", "institution_type": "local", "city": "Przemyśl", "street": "Rynek", "street_number": "1", "postal_code": "37-700", "email": "mail@um.przemysl.pl", "tel": "0048166786820", "website": "https://www.przemysl.pl/"},
++      "dataset": {"title": "Lokalizacje AED – Automatycznych Defibrylatorów Zewnętrznych w Przemyślu", "license": "CC0 1.0", "update_frequency": "daily"},
++      "file": "przemysl.csv",
++      "representative": "aed.przemysl@mcod.local"
++    },
++    {
++      "slug": "marki",
++      "source": "https://dane.gov.pl/pl/dataset/4955",
++      "institution": {"title": "Urząd Miasta Marki", "regon": "000526009", "institution_type": "local", "city": "Marki", "street": "Józefa Piłsudskiego", "street_number": "95", "postal_code": "05-270", "email": "urzad.miasta@marki.pl", "tel": "0048227811003", "website": "https://www.marki.pl/"},
++      "dataset": {"title": "Defibrylatory zlokalizowane na terenie Miasta Marki", "license": "CC BY 4.0", "update_frequency": "irregular"},
++      "file": "marki.csv",
++      "representative": "aed.marki@mcod.local"
++    },
++    {
++      "slug": "warszawa",
++      "source": "https://dane.gov.pl/pl/dataset/39512",
++      "institution": {"title": "Urząd m.st. Warszawy", "regon": "015259640", "institution_type": "local", "city": "Warszawa", "street": "Bankowy", "street_number": "3/5", "postal_code": "00-950", "email": "kontakt@um.warszawa.pl", "tel": "00482219115", "website": "http://www.um.warszawa.pl/"},
++      "dataset": {"title": "Lokalizacja defibrylatorów (AED)", "license": "CC BY 4.0", "update_frequency": "daily"},
++      "file": null,
++      "$comment_file": "On dane.gov.pl this is a link to the city catalogue; the data needs a dane.um.warszawa.pl API key (solution/importer WarsawSource).",
++      "representative": "aed.warszawa@mcod.local"
++    }
++  ]
++}
+diff --git a/data/standards/aed/providers/przemysl.csv b/data/standards/aed/providers/przemysl.csv
+new file mode 100644
+index 0000000..545fa84
+--- /dev/null
++++ b/data/standards/aed/providers/przemysl.csv
+@@ -0,0 +1,22 @@
++﻿id;name;description;category;city;street;home_number;postcode;phone;email;www;youtube_url;panorama_url;geometry;gallery;attachments;links
++744;Defibrylator (AED 9485) w ADM Centrum;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Juliusza Słowackiego;12;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7812096","long":"22.7750936"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9485-w-adm-centrum][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9485-w-adm-centrum][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9485-w-adm-centrum];;
++745;Defibrylator (AED 9556) w I Liecum Ogólnokształcącym w Przemyślu;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Juliusza Słowackiego;21;37-700;;lo1@um.przemysl.pl;https://lo1.przemysl.edu.pl;;;{"type":"Point","coordinates":{"lat":"49.7806393","long":"22.7771083"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9556-w-i-liecum-ogolnoksztalcacym-w-przemyslu][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9556-w-i-liecum-ogolnoksztalcacym-w-przemyslu][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9556-w-i-liecum-ogolnoksztalcacym-w-przemyslu];;[1][title:Strona Internetowa Szkoły][url:https://sp6.przemysl.edu.pl][link_type:Oficjalna strona]
++746;Defibrylator (AED 9579) w Szkole Podstawowej Nr 6 w Przemyślu;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Generała Mieczysława Boruty Spiechowicza;1;37-700;+48166779500;sp6@um.przemysl.pl;https://sp6.przemysl.edu.pl;;;{"type":"Point","coordinates":{"lat":"49.7972693","long":"22.7582092"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9579-w-szkole-podstawowej-nr-6-w-przemyslu][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9579-w-szkole-podstawowej-nr-6-w-przemyslu][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9579-w-szkole-podstawowej-nr-6-w-przemyslu];;[1][title:Strona Internetowa Szkoły][url:https://sp6.przemysl.edu.pl][link_type:Oficjalna strona]
++747;Defibrylator (AED 7664) ul. Zamkowa 1;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Zamkowa;1;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7806472","long":"22.7684537"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7664-ul-zamkowa-1][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7664-ul-zamkowa-1][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7664-ul-zamkowa-1];;
++748;Defibrylator (AED 9469) Muzeum Dzwonów i Fajek;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Władycze;3;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7818519","long":"22.7736413"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9469-muzeum-dzwonow-i-fajek][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9469-muzeum-dzwonow-i-fajek][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9469-muzeum-dzwonow-i-fajek];;
++749;Defibrylator (AED 9471) Hala Sportowa POSiR;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Adama Mickiewicza;30;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7823222","long":"22.7837857"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9471-hala-sportowa-posir][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9471-hala-sportowa-posir][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9471-hala-sportowa-posir];;
++751;Defibrylator (AED 9531) Wybrzeże Ojca Świętego Jana Pawła II;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Wybrzeże Ojca Świętego Jana Pawła II;70;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.782701","long":"22.7482498"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9531-wybrzeze-ojca-swietego-jana-pawla-ii][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9531-wybrzeze-ojca-swietego-jana-pawla-ii][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9531-wybrzeze-ojca-swietego-jana-pawla-ii];;
++752;Defibrylator (AED 9509) 3 Maja 19 (DH Szpak);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;3 Maja;19;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7877625","long":"22.7659058"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9509-3-maja-19-dh-szpak-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9509-3-maja-19-dh-szpak-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9509-3-maja-19-dh-szpak-];;
++753;Defibrylator (AED 9480) Plac Konstytucji 3 Maja 19 (Szalety Miejskie);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Plac Konstytucji 3 Maja;;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.785488428961415","long":"22.76658728175353"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9480-plac-konstytucji-3-maja-19-szalety-miejskie-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9480-plac-konstytucji-3-maja-19-szalety-miejskie-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9480-plac-konstytucji-3-maja-19-szalety-miejskie-];;
++754;Defibrylator (AED 9508) ul. 22 Stycznia 8;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;22 Stycznia;8;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7887978","long":"22.7744382"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9508-ul-22-stycznia-8][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9508-ul-22-stycznia-8][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9508-ul-22-stycznia-8];;
++755;Defibrylator (AED 9479) - Przystanek Autobusowy (ul. Jagiellońska / pl. Pileckiego);Defibrylator AED (Automated External Defibrillator)to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Jagiellońska;;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.783946716458324","long":"22.771487178504195"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9479-przystanek-autobusowy-ul-jagiellonska-pl-pileckiego-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9479-przystanek-autobusowy-ul-jagiellonska-pl-pileckiego-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9479-przystanek-autobusowy-ul-jagiellonska-pl-pileckiego-];;
++756;Defibrylator (AED 9481) - Targowisko Zielony Rynek;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Sportowa;2;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7851","long":"22.772605"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-9481-targowisko-zielony-rynek][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-9481-targowisko-zielony-rynek][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-9481-targowisko-zielony-rynek];;
++757;Defibrylator (AED7639) Biblioteka Szkolna (ul. Aleksandra Dworskiego 98);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Aleksandra Dworskiego;98;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7781797","long":"22.7912987"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed7639-biblioteka-szkolna-ul-aleksandra-dworskiego-98-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed7639-biblioteka-szkolna-ul-aleksandra-dworskiego-98-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed7639-biblioteka-szkolna-ul-aleksandra-dworskiego-98-];;
++758;Defibrylator (AED 7653) ul. Św. Jana Nepomucena 3;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Św. Jana Nepomucena;3;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7870277","long":"22.7618273"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7653-ul-sw-jana-nepomucena-3][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7653-ul-sw-jana-nepomucena-3][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7653-ul-sw-jana-nepomucena-3];;
++759;Defibrylator (AED 7622) ul. Biskupa Jakuba Glazera 9;Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Biskupa Jakuba Glazera;9;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7869557","long":"22.7593319"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7622-ul-biskupa-jakuba-glazera-9][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7622-ul-biskupa-jakuba-glazera-9][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7622-ul-biskupa-jakuba-glazera-9];;
++760;Defibrylator (AED 7650) ul. Wodna 11 (Budynek Urzedu Miejskiego w Przemyślu);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Wodna;11;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.783874","long":"22.7692654"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7650-ul-wodna-11-budynek-urzedu-miejskiego-w-przemyslu-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7650-ul-wodna-11-budynek-urzedu-miejskiego-w-przemyslu-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7650-ul-wodna-11-budynek-urzedu-miejskiego-w-przemyslu-];;
++761;Defibrylator (AED 7660) Plac Legionów (obok dworca PKP);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Plac Legionów;6;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.783769","long":"22.77925"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7660-plac-legionow-obok-dworca-pkp-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7660-plac-legionow-obok-dworca-pkp-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7660-plac-legionow-obok-dworca-pkp-];;
++762;Defibrylator (AED7646) - Rynek 1 (Gmach Główny Urzędu Miejskiego);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Rynek;1;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7827443","long":"22.7690008"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed7646-rynek-1-gmach-glowny-urzedu-miejskiego-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed7646-rynek-1-gmach-glowny-urzedu-miejskiego-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed7646-rynek-1-gmach-glowny-urzedu-miejskiego-];;
++763;Defibrylator (AED 7654) Aleje XXV Polskiej Drużyny Strzeleckiej 1 (PCKiN ZAMEK);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Aleje XXV Polskiej Drużyny Strzeleckiej;1;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.780317","long":"22.7656931"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-];;
++764;Defibrylator (AED 7639) Grunwaldzka 81 (Szkoła Podstawowa Nr 16 w Przemyslu);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Grunwaldzka;81;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7844038","long":"22.7549412"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-];;
++765;Defibrylator (AED 7649) Bpa. Jakuba Glazera 44 (II Liceum Ogólnoksztalcące w Przemyślu);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Bpa. Jakuba Glazera;44;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7916725","long":"22.7531132"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-];;
+diff --git a/mcod/datasets/admin.py b/mcod/datasets/admin.py
+index c8cb8b0..ec57e1d 100644
+--- a/mcod/datasets/admin.py
++++ b/mcod/datasets/admin.py
+@@ -500,6 +500,7 @@ class DatasetAdminMixin(HistoryMixin):
+                         *has_high_value_data,
+                         *has_high_value_data_from_ec_list,
+                         *has_research_data,
++                        "data_standard",
+                         *is_promoted,
+                         "archived_resources_files_media_url",
+                         "status",
+@@ -629,6 +630,13 @@ class DatasetAdminMixin(HistoryMixin):
+ 
+         super().save_model(request, obj, form, change)
+ 
++        if change and "data_standard" in form.changed_data:
++            from django.db import transaction
++
++            from mcod.standards.tasks import check_dataset_conformity_task
++
++            transaction.on_commit(lambda: check_dataset_conformity_task.delay(obj.pk))
++
+     def save_formset(self, request, form, formset, change):
+         instances = formset.save(commit=False)
+         for instance in instances:
+diff --git a/mcod/datasets/forms.py b/mcod/datasets/forms.py
+index 1b74897..7727852 100644
+--- a/mcod/datasets/forms.py
++++ b/mcod/datasets/forms.py
+@@ -256,6 +256,8 @@ class DatasetForm(ModelFormWithKeywords, HighValueDataFormValidatorMixin):
+                 ),
+             )
+ 
++        self._validate_data_standard(cleaned_data)
++
+         if cleaned_data.get("is_promoted"):
+             limit = settings.DATASET_IS_PROMOTED_LIMIT
+             msg = _(
+@@ -273,6 +275,27 @@ class DatasetForm(ModelFormWithKeywords, HighValueDataFormValidatorMixin):
+                 )
+         return cleaned_data
+ 
++    def _validate_data_standard(self, cleaned_data: Dict[str, Any]) -> None:
++        """One dataset per institution and data standard (e.g. one AED register per institution)."""
++        standard = cleaned_data.get("data_standard")
++        if not standard:
++            return
++        organization = cleaned_data.get("organization") or getattr(self.instance, "organization", None)
++        if not organization:
++            return
++        others = Dataset.raw.filter(organization=organization, data_standard__code=standard.code, is_removed=False)
++        if self.instance and self.instance.pk:
++            others = others.exclude(pk=self.instance.pk)
++        other = others.first()
++        if other:
++            self.add_error(
++                "data_standard",
++                mark_safe(
++                    _("This institution already has a dataset following this data standard: ")
++                    + f"<a href='{other.admin_change_url}'>{other.title}</a>"
++                ),
++            )
++
+     def clean_status(self):
+         if self.instance.id:
+             organization = self.instance.organization
+diff --git a/mcod/datasets/migrations/0047_dataset_data_standard.py b/mcod/datasets/migrations/0047_dataset_data_standard.py
+new file mode 100644
+index 0000000..03db292
+--- /dev/null
++++ b/mcod/datasets/migrations/0047_dataset_data_standard.py
+@@ -0,0 +1,20 @@
++# Generated by Django 2.2.9 on 2026-11-21 22:31
++
++from django.db import migrations, models
++import django.db.models.deletion
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('standards', '0001_initial'),
++        ('datasets', '0046_auto_20260907_1051'),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name='dataset',
++            name='data_standard',
++            field=models.ForeignKey(blank=True, help_text='Files in a dataset bound to a data standard can only be published once they conform to it.', null=True, on_delete=django.db.models.deletion.PROTECT, related_name='datasets', to='standards.DataStandard', verbose_name='data standard'),
++        ),
++    ]
+diff --git a/mcod/datasets/models.py b/mcod/datasets/models.py
+index 7c45255..0c3dfcb 100644
+--- a/mcod/datasets/models.py
++++ b/mcod/datasets/models.py
+@@ -309,6 +309,15 @@ class Dataset(ExtendedModel):
+     has_high_value_data = models.NullBooleanField(verbose_name=_("has high value data"))
+     has_high_value_data_from_ec_list = models.NullBooleanField(verbose_name=_("has high value data from the EC list"))
+     has_research_data = models.NullBooleanField(verbose_name=_("has research data"))
++    data_standard = models.ForeignKey(
++        "standards.DataStandard",
++        on_delete=models.PROTECT,
++        null=True,
++        blank=True,
++        related_name="datasets",
++        verbose_name=_("data standard"),
++        help_text=_("Files in a dataset bound to a data standard can only be published once they conform to it."),
++    )
+     update_notification_frequency = models.PositiveSmallIntegerField(
+         null=True, blank=True, verbose_name=_("set notifications frequency")
+     )
+diff --git a/mcod/resources/admin.py b/mcod/resources/admin.py
+index ccd65a4..d61b404 100644
+--- a/mcod/resources/admin.py
++++ b/mcod/resources/admin.py
+@@ -278,6 +278,8 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
+             if obj.tabular_data_schema:
+                 maps_and_plots_tab = ("maps_and_plots", _("Maps and plots"))
+             tabs.append(maps_and_plots_tab)
++            if getattr(obj.dataset, "data_standard_id", None):
++                tabs.append(("standard", _("Data standard")))
+         tabs.append(("supplements", _("Supplements")))
+         return tabs
+ 
+@@ -457,6 +459,16 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
+                         ),
+                     ]
+                 )
++            if getattr(obj.dataset, "data_standard_id", None):
++                fieldsets.append(
++                    (
++                        None,
++                        {
++                            "classes": ("suit-tab", "suit-tab-standard", "full-width"),
++                            "fields": ("standard_conformity",),
++                        },
++                    )
++                )
+         else:
+             fieldsets = tuple(
+                 [
+@@ -635,8 +647,17 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
+                 "language",
+                 "related_resource",
+             )
++        if obj and obj.id:
++            readonly_fields = (*readonly_fields, "standard_conformity")
+         return tuple(set(readonly_fields))
+ 
++    def standard_conformity(self, obj):
++        from mcod.standards.admin import render_conformity
++
++        return render_conformity(obj)
++
++    standard_conformity.short_description = _("Conformity with the data standard")
++
+     def lang(self, obj):
+         return obj.get_language_display()
+ 
+@@ -900,6 +921,16 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
+         if form.cleaned_data.get("file"):
+             ResourceFile.objects.update_or_create(resource=obj, is_main=True, defaults={"file": form.cleaned_data["file"]})
+ 
++        if getattr(form, "standard_publish_requested", False):
++            from mcod.standards.conformity import request_verification
++
++            request_verification(obj)
++            self.message_user(
++                request,
++                _("The file was saved as a draft. It will be published automatically once it conforms to the data standard %(std)s.")
++                % {"std": obj.dataset.data_standard},
++            )
++
+         if revalidate:
+             obj.revalidate()
+ 
+diff --git a/mcod/resources/forms.py b/mcod/resources/forms.py
+index fd4a5b7..514aecf 100644
+--- a/mcod/resources/forms.py
++++ b/mcod/resources/forms.py
+@@ -302,6 +302,7 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
+         self._validate_data_date(data)
+         self._validate_resource_status(data)
+         self._validate_related_resource(data)
++        self._validate_data_standard(data, creating_resource)
+ 
+         # Check if updating Main DGA Resource
+         is_main_dga_resource: bool = self._is_main_dga_resource_updated(instance_pk)
+@@ -354,6 +355,44 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
+             )
+             self.add_error("status", mark_safe(error_message + dataset.title_as_link))
+ 
++    def _validate_data_standard(self, data: dict, creating_resource: bool) -> None:
++        """
++        Datasets bound to a data standard only publish files that conform to it.
++
++        A new or replaced file can't be checked yet (processing runs after saving): it is saved as a draft and published
++        automatically once it conforms (see `mcod.standards.conformity.publish_conforming`).
++        """
++        from mcod.standards.models import ResourceConformity
++
++        self.standard_publish_requested = False
++        dataset = data.get("dataset")
++        standard = getattr(dataset, "data_standard", None) if dataset else None
++        if not standard or data.get("status") != "published":
++            return
++
++        file_replaced = bool(data.get("file")) or (
++            not creating_resource and (data.get("link") or "") != (self.instance.link or "") and not self.instance.main_file
++        )
++        conformity = None if creating_resource else ResourceConformity.objects.filter(resource=self.instance).first()
++
++        if creating_resource or file_replaced or conformity is None or conformity.status == conformity.STATUS_PENDING:
++            data["status"] = "draft"
++            self.standard_publish_requested = True
++            return
++
++        if not conformity.is_ok or conformity.standard_id != standard.id:
++            reasons = conformity.report.get("missing_required") or []
++            detail = (
++                _("unmapped required columns: %(cols)s") % {"cols": ", ".join(reasons)}
++                if reasons
++                else _("%(n)s data error(s)") % {"n": conformity.report.get("error_count", 0)}
++            )
++            self.add_error(
++                "status",
++                _("This dataset follows the data standard %(std)s. The file can't be published until it conforms (%(d)s).")
++                % {"std": standard, "d": detail},
++            )
++
+     def _validate_related_resource(self, data: dict) -> None:
+         related_resource = data.get("related_resource")
+         dataset = data.get("dataset")
+diff --git a/mcod/resources/goodtables_checks.py b/mcod/resources/goodtables_checks.py
+index ef3ce95..e572d86 100644
+--- a/mcod/resources/goodtables_checks.py
++++ b/mcod/resources/goodtables_checks.py
+@@ -24,3 +24,42 @@ class ZeroDataRows:
+                 )
+             )
+         return errors
++
++
++SINGLE_COLUMN_DELIMITED = "single-column-delimited"
++SINGLE_COLUMN_DELIMITED_MSG = (
++    "Plik został odczytany jako jedna kolumna, choć nagłówek i wiersze zawierają separatory (np. przecinki). "
++    "Najczęściej cały wiersz jest ujęty w cudzysłów. Popraw formatowanie pliku CSV."
++)
++_SEPARATORS = (",", ";", "\t", "|")
++
++
++def _looks_delimited(value) -> bool:
++    text = str(value or "")
++    return any(text.count(sep) >= 2 for sep in _SEPARATORS)
++
++
++@check(SINGLE_COLUMN_DELIMITED, type="custom", context="body")
++class SingleColumnDelimited:
++    """A one-column table whose header and most rows contain separators: a mis-quoted CSV read as a single column."""
++
++    def __init__(self, **kwargs):
++        self.__header = None
++        self.__columns = None
++        self.__rows = 0
++        self.__delimited_rows = 0
++
++    def check_row(self, cells):
++        if self.__columns is None:
++            self.__columns = len(cells)
++            self.__header = cells[0].get("header") if cells else None
++        if len(cells) == 1:
++            self.__rows += 1
++            if _looks_delimited(cells[0].get("value")):
++                self.__delimited_rows += 1
++
++    def check_table(self):
++        if self.__columns == 1 and _looks_delimited(self.__header) and self.__rows:
++            if self.__delimited_rows / self.__rows >= 0.8:
++                return [Error(SINGLE_COLUMN_DELIMITED, row_number=1, message=SINGLE_COLUMN_DELIMITED_MSG)]
++        return []
+diff --git a/mcod/resources/indexed_data.py b/mcod/resources/indexed_data.py
+index c4312e3..1388173 100644
+--- a/mcod/resources/indexed_data.py
++++ b/mcod/resources/indexed_data.py
+@@ -26,7 +26,7 @@ from mcod.resources.geo import (
+     geocode,
+     median_point,
+ )
+-from mcod.resources.goodtables_checks import ZERO_DATA_ROWS
++from mcod.resources.goodtables_checks import SINGLE_COLUMN_DELIMITED, ZERO_DATA_ROWS
+ from mcod.resources.type_guess import Table
+ 
+ es_connections = Connections()
+@@ -609,7 +609,7 @@ class TabularData(IndexedData):
+ 
+     def validate(self):
+         kwargs = dict(
+-            checks=["structure", "schema", ZERO_DATA_ROWS],
++            checks=["structure", "schema", ZERO_DATA_ROWS, SINGLE_COLUMN_DELIMITED],
+             skip_checks=["extra-header", "blank-header", "blank-row", "duplicate-row"],
+             error_limit=10,
+             format=self.resource_format,
+diff --git a/mcod/resources/tasks/process_resource_file_data.py b/mcod/resources/tasks/process_resource_file_data.py
+index a7621f0..0089cdd 100644
+--- a/mcod/resources/tasks/process_resource_file_data.py
++++ b/mcod/resources/tasks/process_resource_file_data.py
+@@ -14,6 +14,7 @@ from mcod.resources.tasks.common import (
+     save_task_result_for_resource_after_task_failure,
+     update_resource_openness_score,
+ )
++from mcod.standards.conformity import apply_standard_before_validation
+ 
+ if TYPE_CHECKING:
+     from mcod.resources.models import Resource
+@@ -80,6 +81,10 @@ def process_resource_file_data_task(resource_id: int, /):
+ 
+     Resource.objects.filter(pk=resource_id).update(tabular_data_schema=tds)
+     resource: "Resource" = Resource.objects.get(pk=resource_id)
++    # Data standards: check conformity before the generic validation, so a bound dataset always gets a standard report
++    # and mapped columns get the standard's types (e.g. a phone column is text, not a guessed integer).
++    if apply_standard_before_validation(resource):
++        resource = Resource.objects.get(pk=resource_id)
+     resource.data.validate()
+ 
+     success, failed = resource.data.index(force=True)
+diff --git a/mcod/settings/base.py b/mcod/settings/base.py
+index a88e90b..c478b1a 100644
+--- a/mcod/settings/base.py
++++ b/mcod/settings/base.py
+@@ -137,6 +137,7 @@ INSTALLED_APPS = [
+     "mcod.articles",
+     "mcod.datasets",
+     "mcod.resources",
++    "mcod.standards",
+     "mcod.users",
+     "mcod.licenses",
+     "mcod.counters",
+diff --git a/mcod/standards/__init__.py b/mcod/standards/__init__.py
+new file mode 100644
+index 0000000..0b806f1
+--- /dev/null
++++ b/mcod/standards/__init__.py
+@@ -0,0 +1,4 @@
++from mcod.lib.utils import is_django_ver_lt
++
++if is_django_ver_lt(3, 2):
++    default_app_config = "mcod.standards.apps.StandardsConfig"
+diff --git a/mcod/standards/admin.py b/mcod/standards/admin.py
+new file mode 100644
+index 0000000..108197c
+--- /dev/null
++++ b/mcod/standards/admin.py
+@@ -0,0 +1,147 @@
++import json
++
++from django.contrib import admin
++from django.utils import timezone
++from django.utils.html import escape, format_html
++from django.utils.safestring import mark_safe
++
++from mcod.standards.models import DataStandard, ResourceConformity
++
++STATUS_STYLE = {
++    ResourceConformity.STATUS_OK: ("#15803d", "Zgodny ze standardem"),
++    ResourceConformity.STATUS_ERRORS: ("#b91c1c", "Dane niezgodne ze standardem"),
++    ResourceConformity.STATUS_UNMAPPED: ("#b45309", "Brak przypisania wymaganych kolumn"),
++    ResourceConformity.STATUS_PENDING: ("#64748b", "Oczekuje na weryfikację"),
++    ResourceConformity.STATUS_NOT_TABULAR: ("#64748b", "Plik nie jest tabelaryczny"),
++}
++METHOD_LABEL = {
++    "exact": "nazwa zgodna ze standardem",
++    "synonym": "rozpoznany nagłówek",
++    "detected": "rozpoznane po wartościach",
++    "manual": "przypisane ręcznie",
++    "point": "wyodrębnione z kolumny z punktem",
++}
++LEVEL_LABEL = {"required": "wymagane", "recommended": "zalecane", "optional": "opcjonalne"}
++
++
++def render_conformity(resource):
++    """HTML for the "Data standard" tab of a resource in the admin."""
++    standard = getattr(resource.dataset, "data_standard", None)
++    if not standard:
++        return "-"
++    conformity = ResourceConformity.objects.filter(resource=resource).first()
++    if conformity is None:
++        return format_html("<p>Plik nie był jeszcze weryfikowany ze standardem <b>{}</b>.</p>", standard)
++
++    color, label = STATUS_STYLE.get(conformity.status, ("#64748b", conformity.status))
++    report = conformity.report or {}
++    parts = [
++        format_html(
++            '<p style="font-size:15px"><span style="display:inline-block;padding:3px 10px;border-radius:12px;'
++            'background:{};color:#fff;font-weight:600">{}</span> &nbsp;Standard: <b>{}</b>{}</p>',
++            color,
++            label,
++            standard,
++            format_html(" &nbsp;· sprawdzono {}", timezone.localtime(conformity.checked_at).strftime("%Y-%m-%d %H:%M")) if conformity.checked_at else "",
++        )
++    ]
++    if conformity.publish_requested:
++        parts.append(mark_safe("<p>Plik zostanie <b>opublikowany automatycznie</b>, gdy będzie zgodny ze standardem.</p>"))
++
++    for warning in report.get("warnings", []):
++        parts.append(format_html('<p style="color:#b45309">⚠ {}</p>', warning.get("message")))
++
++    if report.get("missing_required"):
++        names = {f["name"]: standard.annotation(f).get("label_pl", f["name"]) for f in standard.fields}
++        parts.append(
++            format_html(
++                '<p style="color:#b91c1c"><b>Brakuje wymaganych kolumn:</b> {}</p>',
++                ", ".join(f"{names.get(n, n)} ({n})" for n in report["missing_required"]),
++            )
++        )
++
++    rows = []
++    mapping = conformity.mapping or {}
++    for field in standard.fields:
++        ann = standard.annotation(field)
++        item = mapping.get(field["name"])
++        column = escape(item["col_name"]) if item else '<span style="color:#94a3b8">—</span>'
++        how = METHOD_LABEL.get(item.get("method"), "") if item else ""
++        if item and item.get("swap_suspected"):
++            how += ' <b style="color:#b45309">(zamienione?)</b>'
++        level = ann.get("level", "")
++        style = ' style="font-weight:600"' if level == "required" else ""
++        rows.append(
++            f"<tr{style}><td>{escape(ann.get('label_pl', field['name']))}<br><code>{escape(field['name'])}</code></td>"
++            f"<td>{LEVEL_LABEL.get(level, level)}</td><td>{column}</td><td>{how}</td>"
++            f"<td><code>{escape(str(ann.get('example', '')))}</code></td></tr>"
++        )
++    parts.append(
++        mark_safe(
++            '<table class="table table-condensed" style="max-width:1100px"><thead><tr>'
++            "<th>Pole standardu</th><th>Poziom</th><th>Kolumna w pliku</th><th>Jak przypisano</th><th>Przykład</th>"
++            "</tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
++        )
++    )
++
++    errors = report.get("errors", [])
++    if errors:
++        labels = {f["name"]: standard.annotation(f).get("label_pl", f["name"]) for f in standard.fields}
++        items = []
++        for e in errors[:20]:
++            where = [f"wiersz {e['row']}"] if e.get("row") else []
++            if e.get("field"):
++                where.append(f"pole „{labels.get(e['field'], e['field'])}”")
++            if e.get("source_column"):
++                where.append(f"kolumna w pliku „{e['source_column']}”")
++            items.append(f"<li><b>{escape(', '.join(where))}</b> – {escape(e.get('message', ''))}</li>")
++        more = report.get("error_count", len(errors)) - min(len(errors), 20)
++        parts.append(
++            mark_safe(
++                f'<p style="color:#b91c1c"><b>Błędy ({report.get("error_count", len(errors))}):</b></p><ul>'
++                + "".join(items)
++                + (f"<li>… i {more} więcej</li>" if more > 0 else "")
++                + "</ul>"
++            )
++        )
++    return mark_safe("".join(str(p) for p in parts))
++
++
++@admin.register(DataStandard)
++class DataStandardAdmin(admin.ModelAdmin):
++    list_display = ("title", "code", "version", "is_active", "fields_count", "datasets_count", "modified")
++    readonly_fields = ("code", "version", "definition_pretty", "created", "modified")
++    fields = ("title", "code", "version", "description", "is_active", "definition_pretty", "created", "modified")
++
++    def fields_count(self, obj):
++        return len(obj.fields)
++
++    fields_count.short_description = "Pola"
++
++    def datasets_count(self, obj):
++        return obj.datasets.count()
++
++    datasets_count.short_description = "Zbiory danych"
++
++    def definition_pretty(self, obj):
++        return format_html(
++            '<pre style="max-height:600px;overflow:auto">{}</pre>', json.dumps(obj.definition, ensure_ascii=False, indent=2)
++        )
++
++    definition_pretty.short_description = "Definicja (Table Schema)"
++
++    def has_add_permission(self, request):
++        return False  # standards are loaded from files: manage.py load_data_standards
++
++
++@admin.register(ResourceConformity)
++class ResourceConformityAdmin(admin.ModelAdmin):
++    list_display = ("resource", "standard", "status", "publish_requested", "checked_at")
++    list_filter = ("status", "standard")
++    readonly_fields = ("resource", "standard", "status", "report_html", "checked_at")
++    fields = ("resource", "standard", "status", "mapping", "mapping_confirmed", "publish_requested", "report_html", "checked_at")
++
++    def report_html(self, obj):
++        return render_conformity(obj.resource)
++
++    report_html.short_description = "Raport"
+diff --git a/mcod/standards/apps.py b/mcod/standards/apps.py
+new file mode 100644
+index 0000000..e31da12
+--- /dev/null
++++ b/mcod/standards/apps.py
+@@ -0,0 +1,9 @@
++from django.apps import AppConfig
++from django.utils.translation import gettext_lazy as _
++
++
++class StandardsConfig(AppConfig):
++    """Data standards (e.g. the AED register) that datasets can be bound to and whose files must conform."""
++
++    name = "mcod.standards"
++    verbose_name = _("Data standards")
+diff --git a/mcod/standards/conformity.py b/mcod/standards/conformity.py
+new file mode 100644
+index 0000000..fde4575
+--- /dev/null
++++ b/mcod/standards/conformity.py
+@@ -0,0 +1,519 @@
++"""
++Conformity of resources (files) with the data standard their dataset is bound to.
++
++Deterministic only, no AI: column mapping comes from exact names, then the standard's header synonyms, then simple
++value checks (Poland's coordinate ranges). AI-assisted mapping is a third-party tool's job; its output uses the
++standard's exact column names, which map here with no further input.
++"""
++
++import csv
++import json
++import logging
++import os
++import re
++import tempfile
++import unicodedata
++from typing import Dict, List, Optional
++
++from django.db import transaction
++from django.utils import timezone
++from goodtables import validate as validate_table
++from tableschema import Table
++
++from mcod.standards.models import DataStandard, ResourceConformity
++
++logger = logging.getLogger("mcod")
++
++SAMPLE_ROWS = 200
++ERROR_LIMIT = 50
++# Value ranges used to recognise coordinate columns in Poland (must stay in line with the standard's constraints).
++LAT_RANGE = (49.0, 54.9)
++LON_RANGE = (14.1, 24.2)
++_POLISH = str.maketrans("łŁ", "lL")
++
++
++def normalize_header(value: str) -> str:
++    """'Długość_geograficzna ' -> 'dlugosc geograficzna'."""
++    value = unicodedata.normalize("NFKD", str(value).translate(_POLISH))
++    value = "".join(ch for ch in value if not unicodedata.combining(ch)).lower()
++    return re.sub(r"[\s_\-./]+", " ", value).strip()
++
++
++# --- mapping ---------------------------------------------------------------
++
++
++def suggest_mapping(standard: DataStandard, headers: List[str], sample: Optional[List[list]] = None) -> Dict[str, dict]:
++    """
++    Map the provider's columns to standard fields.
++
++    Returns {standard_field: {"col_name", "col_index", "method"}}; each column and each field is used at most once.
++    """
++    mapping: Dict[str, dict] = {}
++    used_cols = set()
++    normalized = [normalize_header(h) for h in headers]
++    sample = sample or []
++
++    def assign(field_name, index, method, **extra):
++        mapping[field_name] = {"col_name": headers[index], "col_index": index, "method": method, **extra}
++        used_cols.add(index)
++
++    def best(candidates):
++        # Among several matching columns prefer the most varied one: a "Nazwa" column that says "Defibrylator" in
++        # every row should lose to a "Lokalizacja" column with real place names.
++        if len(candidates) == 1 or not sample:
++            return candidates[0]
++        return max(candidates, key=lambda i: (len(set(_column_values(sample, i))), -i))
++
++    # 1. exact standard names (files produced by the converter, or already in the standard's format)
++    for field in standard.fields:
++        name = normalize_header(field["name"])
++        candidates = [i for i, header in enumerate(normalized) if i not in used_cols and header == name]
++        if candidates:
++            assign(field["name"], candidates[0], "exact")
++
++    # 2. header synonyms from the standard's definition
++    for field in standard.fields:
++        if field["name"] in mapping:
++            continue
++        synonyms = {normalize_header(s) for s in standard.annotation(field).get("synonyms", [])}
++        candidates = [i for i, header in enumerate(normalized) if i not in used_cols and header in synonyms]
++        if candidates:
++            assign(field["name"], best(candidates), "synonym")
++
++    # 3. coordinates recognised by their values, swapped lat/lon detected, or one "point" column (GeoJSON-like)
++    if sample:
++        _detect_coordinates(mapping, headers, sample, used_cols, assign)
++        if "lat" not in mapping and "lon" not in mapping:
++            _detect_point(standard, mapping, headers, normalized, sample, used_cols)
++
++    return mapping
++
++
++_NUM = r"-?\d+(?:[.,]\d+)?"
++_POINT_TEXT = re.compile(rf"^\s*\(?\s*({_NUM})\s*[,; ]\s*({_NUM})\s*\)?\s*$")
++
++
++def parse_point(value):
++    """
++    (lat, lon) from a point value, or None.
++
++    Accepts GeoJSON {"type":"Point","coordinates":[lon,lat]}, the {"lat":..,"long"/"lon"/"lng":..} variant (also nested
++    in "coordinates"), and the text "lat, lon". Text pairs are ordered by Poland's ranges, so "21.7, 49.7" also works.
++    """
++    if value in (None, "", "-"):
++        return None
++    obj = value
++    if isinstance(value, str):
++        text = value.strip()
++        if text.startswith("{") or text.startswith("["):
++            try:
++                obj = json.loads(text)
++            except ValueError:
++                return None
++        else:
++            match = _POINT_TEXT.match(text)
++            if not match:
++                return None
++            a, b = (float(x.replace(",", ".")) for x in match.groups())
++            return (b, a) if _in(a, LON_RANGE) and _in(b, LAT_RANGE) else (a, b)
++    try:
++        if isinstance(obj, dict) and "coordinates" in obj:
++            obj = obj["coordinates"]
++        if isinstance(obj, dict):
++            lat = obj.get("lat") or obj.get("latitude")
++            lon = obj.get("lon") or obj.get("long") or obj.get("lng") or obj.get("longitude")
++            return (float(lat), float(lon)) if lat is not None and lon is not None else None
++        if isinstance(obj, (list, tuple)) and len(obj) >= 2:
++            return float(obj[1]), float(obj[0])  # GeoJSON order: [lon, lat]
++    except (TypeError, ValueError):
++        return None
++    return None
++
++
++def _in(number, value_range):
++    return value_range[0] <= number <= value_range[1]
++
++
++def _detect_point(standard, mapping, headers, normalized, sample, used_cols):
++    point = standard.definition.get("x-standard", {}).get("composite_inputs", {}).get("point")
++    if not point:
++        return
++    synonyms = {normalize_header(s) for s in point.get("synonyms", [])}
++    order = sorted(range(len(headers)), key=lambda i: normalized[i] not in synonyms)  # synonym columns first
++    for i in order:
++        if i in used_cols:
++            continue
++        values = _column_values(sample, i)
++        points = [parse_point(v) for v in values]
++        inside = [p for p in points if p and _in(p[0], LAT_RANGE) and _in(p[1], LON_RANGE)]
++        if len(values) >= 3 and len(inside) / len(values) > 0.9:
++            for field_name in ("lat", "lon"):
++                mapping[field_name] = {"col_name": headers[i], "col_index": i, "method": "point", "part": field_name}
++            used_cols.add(i)
++            return
++
++
++def _numeric_share_in(values, low, high):
++    numbers = []
++    for v in values:
++        try:
++            numbers.append(float(str(v).replace(",", ".")))
++        except (TypeError, ValueError):
++            continue
++    if not numbers:
++        return 0.0
++    return sum(low <= n <= high for n in numbers) / len(numbers)
++
++
++def _column_values(sample, index):
++    return [row[index] for row in sample if index < len(row) and row[index] not in (None, "", "-")]
++
++
++def _detect_coordinates(mapping, headers, sample, used_cols, assign):
++    # A header that says "latitude" over values that are longitudes (or the reverse): the columns are swapped.
++    lat, lon = mapping.get("lat"), mapping.get("lon")
++    if lat and lon:
++        lat_values, lon_values = _column_values(sample, lat["col_index"]), _column_values(sample, lon["col_index"])
++        if _numeric_share_in(lat_values, *LON_RANGE) > 0.9 and _numeric_share_in(lon_values, *LAT_RANGE) > 0.9:
++            for item in (lat, lon):
++                item["swap_suspected"] = True
++        return
++
++    for field_name, value_range in (("lat", LAT_RANGE), ("lon", LON_RANGE)):
++        if field_name in mapping:
++            continue
++        for i in range(len(headers)):
++            if i in used_cols:
++                continue
++            values = _column_values(sample, i)
++            if len(values) >= 3 and _numeric_share_in(values, *value_range) > 0.95:
++                assign(field_name, i, "detected")
++                break
++
++
++# --- normalization and validation --------------------------------------------
++
++
++def _open_table(resource):
++    data = resource.data
++    return Table(
++        resource.file_data_path,
++        ignore_blank_headers=True,
++        format=data.resource_format,
++        encoding=data.resource_encoding or "utf-8",
++        skip_rows={"type": "preset", "value": "blank"},
++    )
++
++
++def _read_sample(resource):
++    table = _open_table(resource)
++    rows = table.read(limit=SAMPLE_ROWS)
++    return [str(h) for h in (table.headers or [])], rows
++
++
++def _cell(value):
++    if value is None:
++        return ""
++    if isinstance(value, (dict, list)):
++        return json.dumps(value, ensure_ascii=False)
++    return str(value).strip()
++
++
++def normalize_rows(resource, standard: DataStandard, mapping: Dict[str, dict]):
++    """
++    Yield the file's rows in the standard's columns (text values, as written by the provider; no repairs).
++
++    Columns mapped as a "point" give lat/lon extracted from that column. Unmapped standard columns are empty.
++    """
++    names = [f["name"] for f in standard.fields]
++    for row in _open_table(resource).iter():
++        out = dict.fromkeys(names, "")
++        for field_name, item in mapping.items():
++            index = item["col_index"]
++            raw = row[index] if index < len(row) else None
++            if item.get("method") == "point":
++                point = parse_point(raw)
++                out[field_name] = "" if point is None else repr(point[0] if item.get("part") == "lat" else point[1])
++            else:
++                out[field_name] = _cell(raw)
++        yield out
++
++
++def _validation_schema(standard: DataStandard) -> dict:
++    return {
++        "fields": [{k: v for k, v in f.items() if not k.startswith("x-")} for f in standard.fields],
++        "primaryKey": standard.definition.get("primaryKey"),
++        "missingValues": standard.definition.get("missingValues", [""]),
++    }
++
++
++def validate_normalized(resource, standard: DataStandard, mapping: Dict[str, dict]):
++    """Validate the normalized rows against the standard with goodtables (the portal's own validator)."""
++    names = [f["name"] for f in standard.fields]
++    fd, path = tempfile.mkstemp(suffix=".csv", prefix="standard-")
++    try:
++        with os.fdopen(fd, "w", encoding="utf-8", newline="") as fh:
++            writer = csv.DictWriter(fh, fieldnames=names, lineterminator="\n")
++            writer.writeheader()
++            rows = 0
++            for row in normalize_rows(resource, standard, mapping):
++                writer.writerow(row)
++                rows += 1
++        report = validate_table(
++            path,
++            schema=_validation_schema(standard),
++            checks=["structure", "schema"],
++            skip_checks=["blank-row", "duplicate-row"],
++            error_limit=ERROR_LIMIT,
++            format="csv",
++            encoding="utf-8",
++        )
++    finally:
++        os.unlink(path)
++
++    table = report["tables"][0] if report.get("tables") else {}
++    errors = []
++    for e in table.get("errors", []):
++        col = e.get("column-number")
++        field_name = names[col - 1] if col and 0 < col <= len(names) else None
++        source = mapping.get(field_name, {}).get("col_name") if field_name else None
++        errors.append(
++            {
++                "code": e.get("code"),
++                "message": e.get("message"),
++                "row": e.get("row-number"),
++                "field": field_name,
++                "source_column": source,
++            }
++        )
++    if rows == 0:
++        errors.append({"code": "zero-data-rows", "message": "Brak wierszy z danymi", "row": None})
++    return report.get("valid", False) and rows > 0, errors, table.get("error-count", len(errors)), rows
++
++
++# --- entry points ------------------------------------------------------------
++
++
++def get_standard(resource) -> Optional[DataStandard]:
++    dataset = getattr(resource, "dataset", None)
++    return getattr(dataset, "data_standard", None) if dataset else None
++
++
++def check_resource(resource, *, remap: bool = False) -> Optional[ResourceConformity]:
++    """
++    Check one resource against its dataset's standard and store the result.
++
++    Returns None when the dataset is not bound to a standard. Never raises for data problems: they end up in the report.
++    """
++    standard = get_standard(resource)
++    if standard is None:
++        ResourceConformity.objects.filter(resource=resource).delete()
++        return None
++
++    conformity, _ = ResourceConformity.objects.get_or_create(resource=resource, defaults={"standard": standard})
++    if conformity.standard_id != standard.id:
++        conformity.standard, conformity.mapping, conformity.mapping_confirmed = standard, {}, False
++
++    if not resource.has_tabular_format() or not resource.main_file:
++        conformity.status, conformity.report = ResourceConformity.STATUS_NOT_TABULAR, {}
++        return _save(conformity)
++
++    try:
++        headers, sample = _read_sample(resource)
++    except Exception as exc:  # unreadable file: report it instead of failing the processing task
++        logger.exception("standards: cannot read resource %s", resource.pk)
++        conformity.status = ResourceConformity.STATUS_ERRORS
++        conformity.report = {"errors": [{"code": "unreadable", "message": str(exc)}], "error_count": 1}
++        return _save(conformity)
++
++    if remap or not conformity.mapping or not _mapping_fits(conformity.mapping, headers):
++        conformity.mapping = suggest_mapping(standard, headers, sample)
++        conformity.mapping_confirmed = False
++
++    report = {"headers": headers, "missing_required": [], "warnings": [], "errors": [], "error_count": 0}
++    report["missing_required"] = [f for f in standard.required_fields if f not in conformity.mapping]
++    report["warnings"] = _warnings(standard, headers, conformity.mapping, sample)
++
++    if report["missing_required"]:
++        conformity.status = ResourceConformity.STATUS_UNMAPPED
++    else:
++        valid, errors, count, rows = validate_normalized(resource, standard, conformity.mapping)
++        report["errors"], report["error_count"], report["rows"] = errors, count, rows
++        conformity.status = ResourceConformity.STATUS_OK if valid else ResourceConformity.STATUS_ERRORS
++
++    conformity.report = report
++    _save(conformity)
++    if conformity.is_ok:
++        apply_portal_geo_mapping(resource, standard, conformity.mapping)
++        if conformity.publish_requested:
++            publish_conforming(resource, conformity)
++    return conformity
++
++
++TYPE_KEYS = ("type", "format", "trueValues", "falseValues")
++
++
++def apply_standard_types(resource, standard, mapping) -> bool:
++    """
++    Give mapped columns the standard's type in the portal's own schema (`tabular_data_schema`).
++
++    The portal guesses types from samples, e.g. a phone column with mostly empty cells becomes "integer" and then fails
++    the portal's generic validation. For a bound dataset the standard is authoritative.
++    Returns True if the schema changed.
++    """
++    from mcod.resources.models import Resource
++
++    tds = resource.tabular_data_schema or {}
++    fields = tds.get("fields") or []
++    std_fields = {f["name"]: f for f in standard.fields}
++    changed = False
++    for field_name, item in mapping.items():
++        index = item["col_index"]
++        if index >= len(fields) or field_name not in std_fields:
++            continue
++        if item.get("method") == "point":
++            # lat/lon are extracted by the standard; keep the source column as text. The portal guesses JSON points as
++            # "object", which its search indexing cannot handle (KeyError: 'object').
++            wanted = {"type": "string", "format": "default"}
++            if any(fields[index].get(k) != v for k, v in wanted.items()):
++                fields[index].update(wanted)
++                changed = True
++            continue
++        wanted = {k: std_fields[field_name][k] for k in TYPE_KEYS if k in std_fields[field_name]}
++        wanted.setdefault("format", "default")
++        if wanted["type"] == "boolean":
++            # The portal's indexer sends cell text as-is to an Elasticsearch boolean field, ignoring trueValues, so
++            # "tak"/"nie" would fail indexing. The standard check validates booleans; the portal keeps them as text.
++            wanted = {"type": "string", "format": "default"}
++        for key in ("trueValues", "falseValues"):
++            if key not in wanted and key in fields[index]:
++                del fields[index][key]
++                changed = True
++        if any(fields[index].get(k) != v for k, v in wanted.items()):
++            fields[index].update(wanted)
++            changed = True
++    # With the standard's types (boolean, date…) an empty optional cell must count as "missing", as the standard says;
++    # the portal otherwise only accepts its special signs there and rejects the whole file.
++    missing = list(dict.fromkeys((tds.get("missingValues") or []) + standard.definition.get("missingValues", [""])))
++    if mapping and missing != tds.get("missingValues"):
++        tds["missingValues"] = missing
++        changed = True
++    if changed:
++        Resource.raw.filter(pk=resource.pk).update(tabular_data_schema=tds)
++        resource.tabular_data_schema = tds
++    return changed
++
++
++def apply_standard_before_validation(resource) -> bool:
++    """
++    Hook for the file-processing task: check conformity and align column types with the standard.
++
++    Never raises: a failure here must not break the portal's normal processing. Returns True if the resource's schema
++    was changed (callers should reload the resource).
++    """
++    try:
++        conformity = check_resource(resource)
++        if conformity and conformity.mapping:
++            return apply_standard_types(resource, conformity.standard, conformity.mapping)
++    except Exception:
++        logger.exception("standards: conformity check failed for resource %s", resource.pk)
++    return False
++
++
++def _mapping_fits(mapping, headers):
++    return all(
++        item["col_index"] < len(headers) and headers[item["col_index"]] == item["col_name"] for item in mapping.values()
++    )
++
++
++GENERIC_NAMES = {"defibrylator", "aed", "defibrylator aed", "defibrillator"}
++
++
++def _warnings(standard, headers, mapping, sample=None):
++    warnings = []
++    name = mapping.get("name")
++    if name and sample:
++        values = [normalize_header(v) for v in _column_values(sample, name["col_index"])]
++        if values and sum(v in GENERIC_NAMES for v in values) / len(values) > 0.5:
++            warnings.append(
++                {
++                    "code": "generic-name",
++                    "message": f"Kolumna „{name['col_name']}” zawiera głównie słowo „Defibrylator” – nazwa miejsca "
++                    "powinna wskazywać obiekt (np. szkoła, urząd).",
++                }
++            )
++    single = len(headers) == 1 and any(sep in headers[0] for sep in (",", ";", "\t"))
++    if single:
++        warnings.append(
++            {
++                "code": "single-column-delimited",
++                "message": "Plik ma jedną kolumnę, której nagłówek zawiera separatory – prawdopodobnie cały wiersz "
++                "jest ujęty w cudzysłów. Popraw formatowanie CSV.",
++            }
++        )
++    if any(item.get("swap_suspected") for item in mapping.values()):
++        warnings.append(
++            {
++                "code": "coordinates-swapped",
++                "message": "Wartości w kolumnie szerokości geograficznej wyglądają na długość (i odwrotnie) – "
++                "prawdopodobnie kolumny są zamienione.",
++            }
++        )
++    return warnings
++
++
++def _save(conformity):
++    conformity.checked_at = timezone.now()
++    conformity.save()
++    return conformity
++
++
++def apply_portal_geo_mapping(resource, standard, mapping):
++    """Fill the portal's own map roles (Maps and plots) from the standard mapping, if the editor has not set them."""
++    from mcod.resources.models import Resource
++
++    tds = resource.tabular_data_schema or {}
++    if not tds.get("fields") or tds.get("geo"):
++        return
++    geo = {}
++    for role, field_name in standard.portal_geo.items():
++        item = mapping.get(field_name)
++        if not item or item.get("method") == "point" or item["col_index"] >= len(tds["fields"]):
++            return  # the portal's own map needs separate lon/lat columns
++        geo[role] = {"col_name": tds["fields"][item["col_index"]]["name"], "col_index": item["col_index"]}
++    for role, item in geo.items():
++        tds["fields"][item["col_index"]]["geo"] = role
++    tds["geo"] = geo
++    Resource.raw.filter(pk=resource.pk).update(tabular_data_schema=tds)
++    resource.tabular_data_schema = tds
++
++
++def request_verification(resource):
++    """
++    Mark a draft as "publish once it conforms" and make the portal process its file now.
++
++    The portal only processes new files of published resources (`process_created_file`), while a file in a dataset bound
++    to a standard stays a draft until it conforms, so processing is requested explicitly.
++    """
++    standard = get_standard(resource)
++    if standard is None:
++        return None
++    conformity, _ = ResourceConformity.objects.update_or_create(
++        resource=resource,
++        defaults={"standard": standard, "status": ResourceConformity.STATUS_PENDING, "publish_requested": True},
++    )
++    resource.revalidate()
++    return conformity
++
++
++def publish_conforming(resource, conformity):
++    """Publish a file the editor asked to publish, now that it conforms."""
++    conformity.publish_requested = False
++    conformity.save(update_fields=["publish_requested"])
++    if resource.status != resource.STATUS.published:
++        resource.status = resource.STATUS.published
++
++        def _publish():
++            resource.save(update_fields=["status"])
++
++        transaction.on_commit(_publish)
+diff --git a/mcod/standards/management/__init__.py b/mcod/standards/management/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/mcod/standards/management/commands/__init__.py b/mcod/standards/management/commands/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/mcod/standards/management/commands/load_aed_providers.py b/mcod/standards/management/commands/load_aed_providers.py
+new file mode 100644
+index 0000000..44571fa
+--- /dev/null
++++ b/mcod/standards/management/commands/load_aed_providers.py
+@@ -0,0 +1,140 @@
++import datetime
++import json
++from pathlib import Path
++
++from django.conf import settings
++from django.core.files.uploadedfile import SimpleUploadedFile
++from django.core.management.base import BaseCommand, CommandError
++from django.db import transaction
++from django.utils import timezone
++from django.utils.text import slugify
++
++from mcod.categories.models import Category
++from mcod.datasets.models import Dataset
++from mcod.organizations.models import Organization
++from mcod.resources.models import Resource, ResourceFile
++from mcod.standards.conformity import request_verification
++from mcod.standards.models import DataStandard
++from mcod.tags.models import Tag
++from mcod.users.models import User
++
++LICENSES = {"CC0 1.0": Dataset.LICENSE_CC0, "CC BY 4.0": Dataset.LICENSE_CC_BY}
++
++
++class Command(BaseCommand):
++    help = (
++        "Set up real AED providers on a local portal: their institutions, a representative account each, an AED-register "
++        "dataset bound to the AED standard, and their real file (uploaded as a draft that publishes once it conforms). "
++        "Idempotent."
++    )
++
++    def add_arguments(self, parser):
++        parser.add_argument("--config", default=str(Path(str(settings.DATA_DIR)) / "standards/aed/providers/providers.json"))
++        parser.add_argument("--password", default="AedTest123!", help="password for the representative accounts (local use)")
++
++    def handle(self, *args, **options):
++        config_path = Path(options["config"])
++        config = json.loads(config_path.read_text(encoding="utf-8"))
++        std = config["standard"]
++        try:
++            standard = DataStandard.objects.get(code=std["code"], version=std["version"])
++        except DataStandard.DoesNotExist:
++            raise CommandError(f"Standard {std['code']} {std['version']} not loaded: run manage.py load_data_standards first")
++
++        category = Category.objects.filter(code="HEAL").order_by("id").first()
++        tag, _ = Tag.objects.get_or_create(name="AED", language="pl", defaults={"status": "published"})
++
++        coordinator = config["coordinator"]
++        org = self._organization(coordinator, slug=coordinator["slug"])
++        self._representative(coordinator["representative"], org, options["password"])
++        self.stdout.write(f"coordinator: {org.title} (pk={org.pk}); set MAIN_AED_OWNER_ORG_PK={org.pk}")
++
++        for provider in config["providers"]:
++            with transaction.atomic():
++                org = self._organization(provider["institution"], slug=slugify(provider["institution"]["title"]))
++                user = self._representative(provider["representative"], org, options["password"])
++                dataset = self._dataset(provider, org, standard, category, tag)
++                resource = self._resource(provider, dataset, standard, config_path.parent)
++            state = f"file {resource.pk} ({resource.status})" if resource else "no file"
++            self.stdout.write(f"{org.title}: dataset {dataset.pk}, {state}, representative {user.email}")
++
++    def _organization(self, data, slug):
++        org = Organization.raw.filter(regon=data["regon"], is_removed=False).first() if data.get("regon") else None
++        org = org or Organization.raw.filter(title=data["title"], is_removed=False).first()
++        fields = {k: v for k, v in data.items() if k not in ("representative", "slug")}
++        if org is None:
++            org = Organization(slug=slug, **fields)
++        else:
++            for key, value in fields.items():
++                setattr(org, key, value)
++        org.status = "published"
++        org.is_removed = False
++        org.save()
++        return org
++
++    def _representative(self, email, org, password):
++        user = User.objects.filter(email=email).first()
++        if user is None:
++            user = User.objects.create_user(email, password, fullname=f"Pełnomocnik – {org.title}")
++        user.is_staff = True
++        user.is_agent = True
++        user.fullname = user.fullname or f"Pełnomocnik – {org.title}"
++        user.phone = user.phone or getattr(org, "tel", None) or "000000000"  # staff accounts need name + phone
++        user.state = "active"
++        user.email_confirmed = user.email_confirmed or timezone.now()
++        user.agent_organization_main = org
++        user.save()
++        user.organizations.add(org)
++        user.agent_organizations.add(org)
++        return user
++
++    def _dataset(self, provider, org, standard, category, tag):
++        data = provider["dataset"]
++        dataset = Dataset.raw.filter(organization=org, data_standard__code=standard.code, is_removed=False).first()
++        fields = {
++            "title": data["title"],
++            "notes": data.get("notes")
++            or f"Rejestr AED instytucji {org.title} zgodny ze standardem {standard}. Źródło: {provider['source']}",
++            "organization": org,
++            "data_standard": standard,
++            "license_chosen": LICENSES.get(data.get("license")),
++            "update_frequency": data.get("update_frequency", "irregular"),
++            "has_dynamic_data": False,
++            "has_high_value_data": False,
++            "has_high_value_data_from_ec_list": False,
++            "has_research_data": False,
++            "status": "published",
++        }
++        if dataset is None:
++            dataset = Dataset.objects.create(**fields)
++        else:
++            Dataset.raw.filter(pk=dataset.pk).update(**fields)
++            dataset.refresh_from_db()
++        if category:
++            dataset.categories.set([category])
++        dataset.tags.add(tag)
++        return dataset
++
++    def _resource(self, provider, dataset, standard, base_dir):
++        if not provider.get("file"):
++            return None
++        existing = Resource.raw.filter(dataset=dataset, is_removed=False).first()
++        if existing:
++            return existing
++        path = base_dir / provider["file"]
++        resource = Resource.objects.create(
++            title=provider["dataset"]["title"],
++            description=provider.get("file_description")
++            or f"Rejestr AED – {dataset.organization.title}. Plik źródłowy z {provider['source']}.",
++            dataset=dataset,
++            status="draft",
++            data_date=datetime.date.today(),
++            has_dynamic_data=False,
++            has_high_value_data=False,
++            has_high_value_data_from_ec_list=False,
++            has_research_data=False,
++        )
++        upload = SimpleUploadedFile(name=path.name, content=path.read_bytes(), content_type="text/csv")
++        ResourceFile.objects.create(resource=resource, is_main=True, file=upload)
++        request_verification(resource)  # drafts are not processed by the portal on their own
++        return resource
+diff --git a/mcod/standards/management/commands/load_data_standards.py b/mcod/standards/management/commands/load_data_standards.py
+new file mode 100644
+index 0000000..0305d8d
+--- /dev/null
++++ b/mcod/standards/management/commands/load_data_standards.py
+@@ -0,0 +1,38 @@
++import json
++from pathlib import Path
++
++from django.conf import settings
++from django.core.management.base import BaseCommand, CommandError
++
++from mcod.standards.models import DataStandard
++
++
++class Command(BaseCommand):
++    help = "Create or update data standards from <root>/<code>/<version>/schema.json files (default root: data/standards)."
++
++    def add_arguments(self, parser):
++        parser.add_argument("--root", default=str(Path(str(settings.DATA_DIR)) / "standards"))
++
++    def handle(self, *args, **options):
++        root = Path(options["root"])
++        files = sorted(root.glob("*/*/schema.json"))
++        if not files:
++            raise CommandError(f"No */*/schema.json files under {root}")
++        for path in files:
++            definition = json.loads(path.read_text(encoding="utf-8"))
++            meta = definition.get("x-standard", {})
++            code, version = meta.get("code"), meta.get("version")
++            if not code or not version or not definition.get("fields"):
++                raise CommandError(f"{path}: needs x-standard.code, x-standard.version and fields")
++            if (code, version) != (path.parent.parent.name, path.parent.name):
++                raise CommandError(f"{path}: x-standard says {code}/{version}, directory says otherwise")
++            standard, created = DataStandard.objects.update_or_create(
++                code=code,
++                version=version,
++                defaults={
++                    "title": meta.get("title_pl") or meta.get("title_en") or code,
++                    "description": meta.get("description_pl", ""),
++                    "definition": definition,
++                },
++            )
++            self.stdout.write(f"{'created' if created else 'updated'}: {standard} ({len(standard.fields)} fields)")
+diff --git a/mcod/standards/migrations/0001_initial.py b/mcod/standards/migrations/0001_initial.py
+new file mode 100644
+index 0000000..c70ed86
+--- /dev/null
++++ b/mcod/standards/migrations/0001_initial.py
+@@ -0,0 +1,58 @@
++# Generated by Django 2.2.9 on 2026-11-21 22:31
++
++import django.contrib.postgres.fields.jsonb
++from django.db import migrations, models
++import django.db.models.deletion
++
++
++class Migration(migrations.Migration):
++
++    initial = True
++
++    dependencies = [
++        ('resources', '0075_add_performance_indexes'),
++    ]
++
++    operations = [
++        migrations.CreateModel(
++            name='DataStandard',
++            fields=[
++                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
++                ('code', models.SlugField(verbose_name='code')),
++                ('version', models.CharField(max_length=20, verbose_name='version')),
++                ('title', models.CharField(max_length=255, verbose_name='title')),
++                ('description', models.TextField(blank=True, verbose_name='description')),
++                ('definition', django.contrib.postgres.fields.jsonb.JSONField(verbose_name='definition (Table Schema)')),
++                ('is_active', models.BooleanField(default=True, verbose_name='active')),
++                ('created', models.DateTimeField(auto_now_add=True)),
++                ('modified', models.DateTimeField(auto_now=True)),
++            ],
++            options={
++                'verbose_name': 'data standard',
++                'verbose_name_plural': 'data standards',
++                'ordering': ('code', 'version'),
++            },
++        ),
++        migrations.CreateModel(
++            name='ResourceConformity',
++            fields=[
++                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
++                ('status', models.CharField(choices=[('pending', 'Waiting for verification'), ('ok', 'Conforms to the standard'), ('unmapped', 'Required columns are not mapped'), ('errors', 'Data does not conform'), ('not_tabular', 'Not a tabular file')], default='pending', max_length=20, verbose_name='status')),
++                ('mapping', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, verbose_name='column mapping')),
++                ('mapping_confirmed', models.BooleanField(default=False, verbose_name='mapping confirmed by the editor')),
++                ('report', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict, verbose_name='report')),
++                ('publish_requested', models.BooleanField(default=False, help_text='The editor chose to publish; the file is published automatically once it conforms.', verbose_name='publish when verified')),
++                ('checked_at', models.DateTimeField(blank=True, null=True, verbose_name='checked at')),
++                ('resource', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='conformity', to='resources.Resource', verbose_name='resource')),
++                ('standard', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='standards.DataStandard', verbose_name='standard')),
++            ],
++            options={
++                'verbose_name': 'resource conformity',
++                'verbose_name_plural': 'resource conformity',
++            },
++        ),
++        migrations.AddConstraint(
++            model_name='datastandard',
++            constraint=models.UniqueConstraint(fields=('code', 'version'), name='standards_code_version_uq'),
++        ),
++    ]
+diff --git a/mcod/standards/migrations/__init__.py b/mcod/standards/migrations/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/mcod/standards/models.py b/mcod/standards/models.py
+new file mode 100644
+index 0000000..36f8d41
+--- /dev/null
++++ b/mcod/standards/models.py
+@@ -0,0 +1,100 @@
++from django.contrib.postgres.fields import JSONField
++from django.db import models
++from django.utils.translation import gettext_lazy as _
++
++
++class DataStandard(models.Model):
++    """
++    A versioned data standard (e.g. "aed" 1.0).
++
++    `definition` is a Frictionless Table Schema with standard-specific annotations (`x-standard`, per-field `x-<code>`):
++    labels, descriptions, examples and header synonyms. Datasets bound to a standard (`Dataset.data_standard`) only
++    accept files that conform to it.
++    """
++
++    code = models.SlugField(max_length=50, verbose_name=_("code"))
++    version = models.CharField(max_length=20, verbose_name=_("version"))
++    title = models.CharField(max_length=255, verbose_name=_("title"))
++    description = models.TextField(blank=True, verbose_name=_("description"))
++    definition = JSONField(verbose_name=_("definition (Table Schema)"))
++    is_active = models.BooleanField(default=True, verbose_name=_("active"))
++    created = models.DateTimeField(auto_now_add=True)
++    modified = models.DateTimeField(auto_now=True)
++
++    class Meta:
++        verbose_name = _("data standard")
++        verbose_name_plural = _("data standards")
++        ordering = ("code", "version")
++        constraints = [models.UniqueConstraint(fields=("code", "version"), name="standards_code_version_uq")]
++
++    def __str__(self):
++        return f"{self.title} (v{self.version})"
++
++    @property
++    def fields(self):
++        return self.definition.get("fields", [])
++
++    @property
++    def annotation_key(self):
++        return f"x-{self.code}"
++
++    def annotation(self, field):
++        return field.get(self.annotation_key, {})
++
++    @property
++    def required_fields(self):
++        return [f["name"] for f in self.fields if f.get("constraints", {}).get("required")]
++
++    @property
++    def portal_geo(self):
++        """Standard field names to use for the portal's map roles, e.g. {"l": "lon", "b": "lat", "label": "name"}."""
++        return self.definition.get("x-standard", {}).get("portal_geo", {})
++
++
++class ResourceConformity(models.Model):
++    """
++    Conformity of one resource (file) with the standard its dataset is bound to.
++
++    The column mapping lives here rather than in `Resource.tabular_data_schema`, because the portal regenerates that
++    schema whenever the file is re-processed.
++    """
++
++    STATUS_PENDING = "pending"
++    STATUS_OK = "ok"
++    STATUS_UNMAPPED = "unmapped"
++    STATUS_ERRORS = "errors"
++    STATUS_NOT_TABULAR = "not_tabular"
++    STATUS_CHOICES = (
++        (STATUS_PENDING, _("Waiting for verification")),
++        (STATUS_OK, _("Conforms to the standard")),
++        (STATUS_UNMAPPED, _("Required columns are not mapped")),
++        (STATUS_ERRORS, _("Data does not conform")),
++        (STATUS_NOT_TABULAR, _("Not a tabular file")),
++    )
++
++    resource = models.OneToOneField(
++        "resources.Resource", on_delete=models.CASCADE, related_name="conformity", verbose_name=_("resource")
++    )
++    standard = models.ForeignKey(DataStandard, on_delete=models.PROTECT, verbose_name=_("standard"))
++    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING, verbose_name=_("status"))
++    # {standard_field: {"col_name": str, "col_index": int, "method": "exact|synonym|detected|manual"}}
++    mapping = JSONField(default=dict, blank=True, verbose_name=_("column mapping"))
++    mapping_confirmed = models.BooleanField(default=False, verbose_name=_("mapping confirmed by the editor"))
++    # {"missing_required": [...], "errors": [{"code", "message", "row", "column"}], "error_count": int}
++    report = JSONField(default=dict, blank=True, verbose_name=_("report"))
++    publish_requested = models.BooleanField(
++        default=False, verbose_name=_("publish when verified"),
++        help_text=_("The editor chose to publish; the file is published automatically once it conforms."),
++    )
++    checked_at = models.DateTimeField(null=True, blank=True, verbose_name=_("checked at"))
++
++    class Meta:
++        verbose_name = _("resource conformity")
++        verbose_name_plural = _("resource conformity")
++
++    def __str__(self):
++        return f"{self.resource_id}: {self.status}"
++
++    @property
++    def is_ok(self):
++        return self.status == self.STATUS_OK
+diff --git a/mcod/standards/tasks.py b/mcod/standards/tasks.py
+new file mode 100644
+index 0000000..c2a24a1
+--- /dev/null
++++ b/mcod/standards/tasks.py
+@@ -0,0 +1,35 @@
++import logging
++
++from django.apps import apps
++
++from mcod.core.tasks import extended_shared_task
++
++logger = logging.getLogger("mcod")
++
++
++@extended_shared_task(name="mcod.standards.tasks.check_dataset_conformity_task")
++def check_dataset_conformity_task(dataset_id: int, remap: bool = False) -> dict:
++    """(Re)check every file of a dataset against the dataset's data standard (run after binding or changing it)."""
++    from mcod.standards.conformity import apply_standard_before_validation, check_resource
++
++    Resource = apps.get_model("resources", "Resource")
++    results = {}
++    for resource in Resource.raw.filter(dataset_id=dataset_id, is_removed=False):
++        if remap:
++            conformity = check_resource(resource, remap=True)
++            results[resource.pk] = conformity.status if conformity else None
++        else:
++            apply_standard_before_validation(resource)
++            conformity = getattr(Resource.raw.get(pk=resource.pk), "conformity", None)
++            results[resource.pk] = conformity.status if conformity else None
++    logger.info("standards: dataset %s conformity %s", dataset_id, results)
++    return results
++
++
++@extended_shared_task(name="mcod.standards.tasks.check_resource_conformity_task")
++def check_resource_conformity_task(resource_id: int, remap: bool = False):
++    from mcod.standards.conformity import check_resource
++
++    Resource = apps.get_model("resources", "Resource")
++    conformity = check_resource(Resource.raw.get(pk=resource_id), remap=remap)
++    return conformity.status if conformity else None

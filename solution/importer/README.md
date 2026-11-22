@@ -74,6 +74,19 @@ class WarsawSource:
 
 Add it to `SOURCES` in `aed_import/__init__.py` to expose it on the command line.
 
+## Export in the AED standard
+
+Writes the database as a CSV in the [AED register standard](../standard/aed/) (one row per device, or per site when
+no device is known; `aed_id` is the stable UUID from our database):
+
+```sh
+uv run python -m aed_import.export_standard --out aed_standard.csv
+uv run python -m aed_import.export_standard --out aed_cc_by.csv --licences CC-BY   # only CC BY sources
+```
+
+Only redistributable sources are exported. OSM and OpenAEDMap data is ODbL, which dane.gov.pl does not offer as a
+licence. A file exported from them is fine for a local demo, but not for publication on the production portal.
+
 ## Tests
 
 ```sh

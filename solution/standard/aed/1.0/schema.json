@@ -1,0 +1,403 @@
+{
+  "$comment": "AED register standard v1.0. Frictionless Table Schema (validated by tableschema/goodtables, as used by dane.gov.pl) plus x-aed annotations used for mapping suggestions and documentation. One row = one AED device.",
+  "x-standard": {
+    "code": "aed",
+    "version": "1.0",
+    "title_pl": "Rejestr AED – standard danych",
+    "title_en": "AED register – data standard",
+    "description_pl": "Lokalizacje i atrybuty automatycznych defibrylatorów zewnętrznych (AED). Jeden wiersz to jedno urządzenie. Dostawca danych odpowiada za ich aktualność i poprawność.",
+    "description_en": "Locations and attributes of automated external defibrillators (AED). One row is one device. The data provider is accountable for keeping it current and correct.",
+    "crs": "EPSG:4326",
+    "portal_geo": { "l": "lon", "b": "lat", "label": "name" },
+    "composite_inputs": {
+      "point": {
+        "produces": ["lat", "lon"],
+        "description_pl": "Jedna kolumna z punktem: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, wariant {\"lat\":..,\"long\":..} lub tekst \"lat, lon\".",
+        "description_en": "One column holding a point: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, the {\"lat\":..,\"long\":..} variant, or the text \"lat, lon\".",
+        "synonyms": ["geometry", "geometria", "geom", "point", "punkt", "location_point", "wspolrzedne", "współrzędne", "coordinates"]
+      }
+    }
+  },
+  "fields": [
+    {
+      "name": "aed_id",
+      "type": "string",
+      "constraints": { "required": true, "unique": true, "pattern": "[A-Za-z0-9._:/-]{1,64}" },
+      "x-aed": {
+        "group": "identity", "level": "required",
+        "label_pl": "Identyfikator AED", "label_en": "AED identifier",
+        "description_pl": "Stały identyfikator urządzenia w rejestrze dostawcy. Nie zmienia się przy aktualizacjach pliku – na jego podstawie wykrywane są zmiany.",
+        "description_en": "Stable identifier of the device within the provider's register. It must not change between file updates; changes are detected by it.",
+        "example": "KRO-0001",
+        "synonyms": ["id", "aed_id", "numer id", "nr", "lp", "identyfikator", "id aed", "defibrillator_id", "id_defibrylatora", "kod"]
+      }
+    },
+    {
+      "name": "lat",
+      "type": "number",
+      "constraints": { "required": true, "minimum": 49.0, "maximum": 54.9 },
+      "x-aed": {
+        "group": "location", "level": "required", "detect": "lat_pl",
+        "label_pl": "Szerokość geograficzna", "label_en": "Latitude",
+        "description_pl": "Szerokość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 49,0 a 54,9.",
+        "description_en": "Latitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 49.0 and 54.9.",
+        "example": "49.718809",
+        "synonyms": ["lat", "latitude", "szerokość geograficzna", "szerokosc geograficzna", "szerokość", "szerokosc", "y", "wsp_y", "phi"]
+      }
+    },
+    {
+      "name": "lon",
+      "type": "number",
+      "constraints": { "required": true, "minimum": 14.1, "maximum": 24.2 },
+      "x-aed": {
+        "group": "location", "level": "required", "detect": "lon_pl",
+        "label_pl": "Długość geograficzna", "label_en": "Longitude",
+        "description_pl": "Długość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 14,1 a 24,2.",
+        "description_en": "Longitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 14.1 and 24.2.",
+        "example": "21.720344",
+        "synonyms": ["lon", "lng", "long", "longitude", "długość geograficzna", "dlugosc geograficzna", "długość", "dlugosc", "x", "wsp_x", "lambda"]
+      }
+    },
+    {
+      "name": "name",
+      "type": "string",
+      "constraints": { "required": true, "minLength": 2, "maxLength": 200 },
+      "x-aed": {
+        "group": "location", "level": "required",
+        "label_pl": "Nazwa miejsca", "label_en": "Site name",
+        "description_pl": "Nazwa obiektu, w którym znajduje się AED (np. szkoła, urząd, pływalnia). Wyświetlana jako etykieta na mapie. Nie wpisuj samego słowa „Defibrylator”.",
+        "description_en": "Name of the place where the AED is (e.g. school, town hall, swimming pool). Shown as the map label. Do not use just the word \"Defibrillator\".",
+        "example": "Zespół Krytych Pływalni",
+        "synonyms": ["name", "nazwa", "nazwa obiektu", "obiekt", "lokalizacja", "miejsce", "location_object_name", "nazwa miejsca", "site", "site_name"]
+      }
+    },
+    {
+      "name": "address",
+      "type": "string",
+      "x-aed": {
+        "group": "address", "level": "recommended",
+        "label_pl": "Adres (pełny)", "label_en": "Address (full)",
+        "description_pl": "Pełny adres w jednym polu, jeśli nie jest rozbity na części.",
+        "description_en": "Full address in one field, if it is not split into parts.",
+        "example": "ul. Jasna 1, 38-400 Krosno",
+        "synonyms": ["adres", "address", "adres obiektu", "full_address", "adres pełny"]
+      }
+    },
+    {
+      "name": "street",
+      "type": "string",
+      "x-aed": {
+        "group": "address", "level": "optional",
+        "label_pl": "Ulica", "label_en": "Street",
+        "description_pl": "Nazwa ulicy z przedrostkiem (ul., al., pl.).",
+        "description_en": "Street name with its prefix (ul., al., pl.).",
+        "example": "ul. Jasna",
+        "synonyms": ["ulica", "street", "ul", "nazwa ulicy"]
+      }
+    },
+    {
+      "name": "house_number",
+      "type": "string",
+      "x-aed": {
+        "group": "address", "level": "optional",
+        "label_pl": "Numer budynku", "label_en": "House number",
+        "description_pl": "Numer budynku, może zawierać literę (np. 5A).",
+        "description_en": "Building number, may contain a letter (e.g. 5A).",
+        "example": "5A",
+        "synonyms": ["numer domu", "nr domu", "numer budynku", "home_number", "house_number", "nr budynku", "numer"]
+      }
+    },
+    {
+      "name": "postcode",
+      "type": "string",
+      "constraints": { "pattern": "[0-9]{2}-[0-9]{3}" },
+      "x-aed": {
+        "group": "address", "level": "recommended", "detect": "postcode_pl",
+        "label_pl": "Kod pocztowy", "label_en": "Postcode",
+        "description_pl": "Kod pocztowy w formacie NN-NNN.",
+        "description_en": "Postcode in the NN-NNN format.",
+        "example": "38-400",
+        "synonyms": ["kod pocztowy", "kod", "postcode", "postal_code", "zip", "pna"]
+      }
+    },
+    {
+      "name": "city",
+      "type": "string",
+      "x-aed": {
+        "group": "address", "level": "recommended",
+        "label_pl": "Miejscowość", "label_en": "City / locality",
+        "description_pl": "Nazwa miejscowości.",
+        "description_en": "Name of the city or locality.",
+        "example": "Krosno",
+        "synonyms": ["miejscowość", "miejscowosc", "miasto", "city", "town", "locality", "gmina"]
+      }
+    },
+    {
+      "name": "teryt",
+      "type": "string",
+      "constraints": { "pattern": "[0-9]{7}" },
+      "x-aed": {
+        "group": "address", "level": "optional",
+        "label_pl": "Kod TERYT gminy (TERC)", "label_en": "Commune TERYT code (TERC)",
+        "description_pl": "7-cyfrowy kod gminy z rejestru TERYT (TERC), np. 1861011 (Krosno).",
+        "description_en": "7-digit commune code from the TERYT register (TERC), e.g. 1861011 (Krosno).",
+        "example": "1861011",
+        "synonyms": ["teryt", "terc", "kod teryt", "kod gminy"]
+      }
+    },
+    {
+      "name": "placement",
+      "type": "string",
+      "x-aed": {
+        "group": "access", "level": "recommended",
+        "label_pl": "Dokładne miejsce", "label_en": "Exact placement",
+        "description_pl": "Gdzie dokładnie wisi AED (np. „hol główny przy recepcji”, „ściana zewnętrzna od strony parkingu”).",
+        "description_en": "Where exactly the AED hangs (e.g. \"main hall by the reception\", \"outer wall facing the car park\").",
+        "example": "Hol główny przy recepcji",
+        "synonyms": ["dokładne miejsce", "miejsce zawieszenia", "opis lokalizacji", "location_description", "placement", "umiejscowienie", "opis"]
+      }
+    },
+    {
+      "name": "indoor",
+      "type": "boolean",
+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes", "wewnątrz", "wewnatrz"],
+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no", "zewnątrz", "zewnatrz"],
+      "x-aed": {
+        "group": "access", "level": "recommended",
+        "label_pl": "Wewnątrz budynku", "label_en": "Indoors",
+        "description_pl": "tak – AED jest wewnątrz budynku; nie – na zewnątrz.",
+        "description_en": "yes – the AED is inside a building; no – outside.",
+        "example": "tak",
+        "synonyms": ["wewnątrz", "w budynku", "indoor", "device_location", "lokalizacja urządzenia"]
+      }
+    },
+    {
+      "name": "floor",
+      "type": "string",
+      "x-aed": {
+        "group": "access", "level": "optional",
+        "label_pl": "Piętro", "label_en": "Floor",
+        "description_pl": "Kondygnacja (0 = parter, -1 = piwnica).",
+        "description_en": "Floor level (0 = ground floor, -1 = basement).",
+        "example": "0",
+        "synonyms": ["piętro", "pietro", "kondygnacja", "floor", "level"]
+      }
+    },
+    {
+      "name": "access",
+      "type": "string",
+      "constraints": { "enum": ["yes", "customers", "permit", "private", "no"] },
+      "x-aed": {
+        "group": "access", "level": "recommended",
+        "label_pl": "Dostępność", "label_en": "Access",
+        "description_pl": "yes – publicznie dostępny; customers – dla klientów/gości obiektu; permit – za zgodą; private – prywatny; no – niedostępny.",
+        "description_en": "yes – public; customers – for the site's customers or visitors; permit – with permission; private – private; no – not accessible.",
+        "example": "yes",
+        "synonyms": ["dostępność", "dostepnosc", "dostęp", "access", "device_public_access", "publiczny"]
+      }
+    },
+    {
+      "name": "opening_hours",
+      "type": "string",
+      "x-aed": {
+        "group": "access", "level": "recommended", "detect": "hours",
+        "label_pl": "Godziny dostępności", "label_en": "Opening hours",
+        "description_pl": "Kiedy AED jest dostępny, w składni OSM opening_hours (np. „Mo-Fr 08:00-16:00”, „24/7”).",
+        "description_en": "When the AED is accessible, in OSM opening_hours syntax (e.g. \"Mo-Fr 08:00-16:00\", \"24/7\").",
+        "example": "Mo-Fr 08:00-16:00",
+        "synonyms": ["godziny", "godziny otwarcia", "godziny dostępności", "dostępny w godzinach", "opening_hours", "device_access_description", "hours"]
+      }
+    },
+    {
+      "name": "is_24_7",
+      "type": "boolean",
+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
+      "x-aed": {
+        "group": "access", "level": "recommended",
+        "label_pl": "Dostępny całodobowo", "label_en": "Available 24/7",
+        "description_pl": "tak – dostępny 24 godziny na dobę, 7 dni w tygodniu.",
+        "description_en": "yes – accessible 24 hours a day, 7 days a week.",
+        "example": "nie",
+        "synonyms": ["całodobowy", "całodobowo", "24/7", "24h", "device_availability", "dostępny całą dobę"]
+      }
+    },
+    {
+      "name": "cabinet_locked",
+      "type": "boolean",
+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
+      "x-aed": {
+        "group": "access", "level": "optional",
+        "label_pl": "Szafka zamknięta", "label_en": "Cabinet locked",
+        "description_pl": "tak – szafka wymaga otwarcia (kod, klucz).",
+        "description_en": "yes – the cabinet must be unlocked (code, key).",
+        "example": "nie",
+        "synonyms": ["zamknięta", "szafka zamknięta", "locked", "cabinet_locked"]
+      }
+    },
+    {
+      "name": "unlock_method",
+      "type": "string",
+      "constraints": { "enum": ["none", "code_112", "key", "staff"] },
+      "x-aed": {
+        "group": "access", "level": "optional",
+        "label_pl": "Sposób otwarcia", "label_en": "Unlock method",
+        "description_pl": "none – bez zabezpieczeń; code_112 – kod podaje dyspozytor 112; key – klucz; staff – przez personel obiektu.",
+        "description_en": "none – unlocked; code_112 – code given by the 112 dispatcher; key – key; staff – via the site's staff.",
+        "example": "none",
+        "synonyms": ["sposób otwarcia", "otwarcie", "unlock", "unlock_method"]
+      }
+    },
+    {
+      "name": "manufacturer",
+      "type": "string",
+      "x-aed": {
+        "group": "device", "level": "optional",
+        "label_pl": "Producent", "label_en": "Manufacturer",
+        "description_pl": "Producent urządzenia.",
+        "description_en": "Device manufacturer.",
+        "example": "Philips",
+        "synonyms": ["producent", "manufacturer", "marka", "brand"]
+      }
+    },
+    {
+      "name": "model",
+      "type": "string",
+      "x-aed": {
+        "group": "device", "level": "optional",
+        "label_pl": "Model", "label_en": "Model",
+        "description_pl": "Model urządzenia.",
+        "description_en": "Device model.",
+        "example": "HeartStart FRx",
+        "synonyms": ["model", "typ", "model urządzenia", "rodzaj"]
+      }
+    },
+    {
+      "name": "serial_number",
+      "type": "string",
+      "x-aed": {
+        "group": "device", "level": "optional",
+        "label_pl": "Numer seryjny", "label_en": "Serial number",
+        "description_pl": "Numer seryjny z etykiety urządzenia (lub z kodu UDI, identyfikator (21)).",
+        "description_en": "Serial number from the device label (or from the UDI code, application identifier (21)).",
+        "example": "B21G-01234",
+        "synonyms": ["numer seryjny", "nr seryjny", "serial", "serial_number", "sn"]
+      }
+    },
+    {
+      "name": "udi_di",
+      "type": "string",
+      "constraints": { "pattern": "[0-9]{14}" },
+      "x-aed": {
+        "group": "device", "level": "optional",
+        "label_pl": "UDI-DI (GTIN)", "label_en": "UDI-DI (GTIN)",
+        "description_pl": "14-cyfrowy identyfikator modelu z kodu UDI na urządzeniu (identyfikator (01)).",
+        "description_en": "14-digit model identifier from the UDI code on the device (application identifier (01)).",
+        "example": "00884838034567",
+        "synonyms": ["udi", "udi_di", "gtin", "kod udi"]
+      }
+    },
+    {
+      "name": "status",
+      "type": "string",
+      "constraints": { "enum": ["active", "out_of_service", "removed", "unknown"] },
+      "x-aed": {
+        "group": "device", "level": "recommended",
+        "label_pl": "Stan urządzenia", "label_en": "Device status",
+        "description_pl": "active – sprawny; out_of_service – niesprawny/w serwisie; removed – zdjęty; unknown – nieznany.",
+        "description_en": "active – working; out_of_service – broken or in service; removed – taken away; unknown – not known.",
+        "example": "active",
+        "synonyms": ["stan", "status", "sprawny", "stan urządzenia"]
+      }
+    },
+    {
+      "name": "paediatric_capable",
+      "type": "boolean",
+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
+      "x-aed": {
+        "group": "device", "level": "optional",
+        "label_pl": "Tryb pediatryczny", "label_en": "Paediatric capable",
+        "description_pl": "tak – urządzenie ma elektrody lub tryb dla dzieci.",
+        "description_en": "yes – the device has paediatric pads or mode.",
+        "example": "tak",
+        "synonyms": ["pediatryczny", "dla dzieci", "paediatric", "pediatric"]
+      }
+    },
+    {
+      "name": "pads_expiry",
+      "type": "date",
+      "x-aed": {
+        "group": "maintenance", "level": "recommended",
+        "label_pl": "Ważność elektrod", "label_en": "Pads expiry",
+        "description_pl": "Data ważności elektrod (RRRR-MM-DD).",
+        "description_en": "Pads expiry date (YYYY-MM-DD).",
+        "example": "2027-03-31",
+        "synonyms": ["ważność elektrod", "data ważności elektrod", "elektrody", "pads_expiry"]
+      }
+    },
+    {
+      "name": "battery_expiry",
+      "type": "date",
+      "x-aed": {
+        "group": "maintenance", "level": "recommended",
+        "label_pl": "Ważność baterii", "label_en": "Battery expiry",
+        "description_pl": "Data ważności baterii (RRRR-MM-DD).",
+        "description_en": "Battery expiry date (YYYY-MM-DD).",
+        "example": "2028-01-31",
+        "synonyms": ["ważność baterii", "data ważności baterii", "bateria", "battery_expiry"]
+      }
+    },
+    {
+      "name": "last_verified",
+      "type": "date",
+      "x-aed": {
+        "group": "maintenance", "level": "recommended",
+        "label_pl": "Data ostatniej weryfikacji", "label_en": "Last verified",
+        "description_pl": "Kiedy ostatnio sprawdzono na miejscu, że AED jest i działa (RRRR-MM-DD).",
+        "description_en": "When someone last checked on site that the AED is there and working (YYYY-MM-DD).",
+        "example": "2026-10-15",
+        "synonyms": ["data weryfikacji", "ostatnia weryfikacja", "data przeglądu", "przegląd", "last_verified", "check_date"]
+      }
+    },
+    {
+      "name": "operator",
+      "type": "string",
+      "x-aed": {
+        "group": "contact", "level": "optional",
+        "label_pl": "Opiekun", "label_en": "Operator",
+        "description_pl": "Podmiot lub osoba opiekująca się urządzeniem na miejscu.",
+        "description_en": "Organisation or person looking after the device on site.",
+        "example": "Zespół Krytych Pływalni w Krośnie",
+        "synonyms": ["opiekun", "operator", "zarządca", "administrator", "właściciel"]
+      }
+    },
+    {
+      "name": "contact_phone",
+      "type": "string",
+      "x-aed": {
+        "group": "contact", "level": "optional",
+        "label_pl": "Telefon kontaktowy", "label_en": "Contact phone",
+        "description_pl": "Telefon do opiekuna (nie do osób prywatnych).",
+        "description_en": "Phone of the operator (not of private persons).",
+        "example": "+48 13 000 00 00",
+        "synonyms": ["telefon", "tel", "phone", "nr telefonu"]
+      }
+    },
+    {
+      "name": "notes",
+      "type": "string",
+      "x-aed": {
+        "group": "other", "level": "optional",
+        "label_pl": "Uwagi", "label_en": "Notes",
+        "description_pl": "Dodatkowe informacje.",
+        "description_en": "Additional information.",
+        "example": "",
+        "synonyms": ["uwagi", "notes", "komentarz", "informacje dodatkowe"]
+      }
+    }
+  ],
+  "primaryKey": "aed_id",
+  "missingValues": ["", "-"]
+}
