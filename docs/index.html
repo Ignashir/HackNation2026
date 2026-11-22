@@ -57,6 +57,15 @@
   .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
   .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   [role="tabpanel"]:focus { outline: none; }
+  .material { display: grid; gap: 10px; }
+  .material-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
+  .material-head h3 { margin: 0; font-size: 1rem; }
+  .material-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .material-actions a { padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; color: var(--accent);
+                        text-decoration: none; font-weight: 600; font-size: .92rem; }
+  .material-actions a:hover, .material-actions a:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
+  .pdf-frame { width: 100%; height: 80vh; min-height: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .pdf-fallback { padding: 16px; }
 </style>
 </head>
 <body>
@@ -66,6 +75,7 @@
   <div class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-demo" aria-controls="panel-demo" data-hash="demo">Demo</button>
     <button class="tab" role="tab" id="tab-promocja" aria-controls="panel-promocja" data-hash="promocja">Akcja promocyjna</button>
+    <button class="tab" role="tab" id="tab-materials" aria-controls="panel-materials" data-hash="materials">Materials</button>
   </div>
 
   <section id="panel-demo" role="tabpanel" aria-labelledby="tab-demo" tabindex="-1">
@@ -134,6 +144,28 @@
       <p class="muted">Wkrótce: materiały akcji promocyjnej.</p>
     </div>
   </section>
+
+  <section id="panel-materials" role="tabpanel" aria-labelledby="tab-materials" tabindex="-1" hidden>
+    <h2>Materials</h2>
+    <div class="card material">
+      <div class="material-head">
+        <h3>Demo walkthrough (PDF)</h3>
+        <div class="material-actions">
+          <a href="materials/AED_demo_walkthrough.pdf" target="_blank" rel="noopener">Open in new tab</a>
+          <a href="materials/AED_demo_walkthrough.pdf" download>Download</a>
+        </div>
+      </div>
+      <p class="muted">The end-to-end demo on the local dane.gov.pl in 28 annotated screenshots: converter, publishing
+        and the standard check, harvester feed, the national AED list, and the mObywatel mock-up. 12 pages, 3 MB.</p>
+      <object class="pdf-frame" data-src="materials/AED_demo_walkthrough.pdf#view=FitH" type="application/pdf"
+              aria-label="Demo walkthrough PDF preview">
+        <div class="pdf-fallback">
+          <p>This browser can't show the PDF here.</p>
+          <p><a href="materials/AED_demo_walkthrough.pdf" target="_blank" rel="noopener">Open the demo walkthrough (PDF)</a></p>
+        </div>
+      </object>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -178,7 +210,10 @@
       const on = t === tab;
       t.setAttribute('aria-selected', on);
       t.tabIndex = on ? 0 : -1;
-      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+      const panel = document.getElementById(t.getAttribute('aria-controls'));
+      panel.hidden = !on;
+      // Load PDF previews only when their tab is opened.
+      if (on) for (const o of panel.querySelectorAll('object[data-src]')) { o.data = o.dataset.src; o.removeAttribute('data-src'); }
     }
     if (focus) tab.focus();
     const url = new URL(location.href);
