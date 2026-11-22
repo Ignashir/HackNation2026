@@ -34,11 +34,30 @@ dane.gov.pl checks files against the standard and combines all registers into on
 (`yes`/`customers`/`permit`/`private`/`no`), `opening_hours` (OSM syntax, e.g. `Mo-Fr 08:00-16:00`, `24/7`),
 `is_24_7`, `status` (`active`/`out_of_service`/`removed`/`unknown`), `pads_expiry`, `battery_expiry`, `last_verified`.
 
-**Optional:** `teryt` (7-digit TERC code), `floor`, `cabinet_locked`, `unlock_method`
+**Optional:** `same_as` (references to the same device elsewhere, see below), `teryt` (7-digit TERC code), `floor`, `cabinet_locked`, `unlock_method`
 (`none`/`code_112`/`key`/`staff`), `manufacturer`, `model`, `serial_number`, `udi_di` (14-digit GTIN from the UDI
 barcode), `paediatric_capable`, `operator`, `contact_phone`, `notes`.
 
 Full descriptions (PL/EN), examples and accepted header synonyms are in `schema.json` under each field's `x-aed`.
+
+## Merging in the national list (Krajowy wykaz AED)
+
+The portal combines all conforming registers into one list. Records of different providers become **one device only
+on deterministic evidence**:
+
+| Evidence | Result |
+|---|---|
+| `same_as` references: another provider's `REGON:aed_id` (e.g. `000526989:5`), or a shared `osm:node/123` | merged; the provider who states the reference is accountable for it |
+| the same `udi_di` + `serial_number`, or the same `manufacturer` + `model` + `serial_number` | merged |
+| only close to each other (≤ 50 m) | **not merged**, flagged as `possible_duplicate_of` (several AEDs in one building are normal) |
+
+Field values of a merged device come from the provider with the highest precedence (local and state government 30,
+private entities 20, others 10), then the newer `last_verified`; empty values never overwrite filled ones. Disagreements
+in `opening_hours`, `is_24_7`, `access`, `status`, `indoor`, `floor`, `unlock_method`, or positions more than 25 m
+apart, are published in a conflicts file. The rules live in `schema.json` under `x-standard.merge`.
+
+The national list publishes four files: the merged list (one row per device, `aed_id` = national key
+`institution:aed_id`, `sources` = all merged records), all provider rows, conflicts, and changes since the previous run.
 
 ## How it maps to our database (`solution/sql`)
 
@@ -65,5 +84,6 @@ print(report["valid"], report["tables"][0]["errors"])
 
 ## Changelog
 
+- **1.0** (2026-11-22, draft): added optional `same_as` and the merge rules (`x-standard.merge`).
 - **1.0** (2026-11-21, draft): first version, derived from `solution/sql` and the four AED datasets already on
   dane.gov.pl (Krosno, Przemyśl, Marki, Warsaw).
