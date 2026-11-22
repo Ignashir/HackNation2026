@@ -44,6 +44,8 @@ Open http://localhost:5173.
 | `GET /api/sites` | `aed_site` + `site_open_at()` + device counts. One row per pin, with `state` = `open` / `closed` / `unknown` / `down` |
 | `GET /api/sites/:id` | Site, address, operator, devices + models + last inspection, `availability_rule`, `media`, `source_record`, `issue_report`, `v_aed_timeline` |
 | `GET /api/nearest?lat=&lon=&limit=&max_m=` | `nearest_available_aed()`, used by the "Najbliższy AED" button (browser geolocation) |
+| `GET /api/cells/:geohash` | Offline cell for the mobile finder: every site in one geohash-4 cell, with opening rules |
+| `POST /api/reports`, `GET /api/reports` | Mobile "Skaner AED" reports → `citizen_report` (+ `issue_report` for issues); GET lists the latest 50 |
 
 Pin colours: green = open now, amber = closed now, grey = hours unknown, red = all devices out of service.
 
@@ -64,6 +66,73 @@ For a local load test: `docker exec -i aed-db psql -U aed -d aed < ../sql/dev/se
 (`src/useGeolocation.js`, `watchPosition`). It shows a pulsing blue dot with an accuracy circle, plus a heading cone
 on devices that report direction. The button under the zoom controls re-centres the map on you, and
 "Najbliższy AED" uses the same tracked position. Browsers only allow geolocation on `localhost` or HTTPS.
+
+## Mobile concept: "Najbliższy AED" (`/mobile.html`)
+
+A prototype of AED features inside a static look-alike of the current mObywatel app. It has the tabs Dokumenty,
+Usługi, Kod QR and Więcej, and follows the system light/dark mode. The emblem and wording are generic, not the
+official branding. Only the AED parts work; every other item shows a "makieta" (mock-up) toast.
+
+- **AED pill in the header** (green, with the distance, on every tab) and **Usługi → Ratunek → Najbliższy AED**
+  open the "Find My"-style finder: an arrow, a rounded distance, a turn hint and details that help you find the
+  device (placement, floor, access, unlock method, hours). It switches to "Jesteś blisko" once you are within
+  GPS accuracy, then shows how to use an AED.
+- **Usługi → Ratunek → Skaner AED**: take a photo (live camera, gallery, or a sample photo when there is no
+  camera). If the offline cache has an AED within 25–60 m, you confirm it or report a problem: locked, broken,
+  missing or moved. Otherwise you describe a new AED (placement, indoor, floor, 24/7, locked, access).
+  The photo, position and answers go to `POST /api/reports` and land in `citizen_report`
+  ([`sql/10_citizen_report.sql`](../sql/10_citizen_report.sql)) with status `pending`, for the data provider
+  to review. Photos are saved in `server/uploads/` (gitignored). An issue about a known site is also copied into
+  `issue_report`, so it shows on the map card. Without signal, the report waits in an IndexedDB outbox and is
+  sent automatically later. "Twoje zgłoszenia" (your reports) shows each one's state.
+  There is no image recognition: the photo is evidence for the reviewer.
+
+Open http://localhost:5173/mobile.html, or run `npm run mobile` to serve it at `/`. Through the phone tunnel
+(`*.trycloudflare.com`), `/` always serves the mobile app, and the map stays at `/index.html`.
+On a laptop it renders inside a phone frame.
+
+> Existing database: `citizen_report` is new. Add it without a reset:
+> `docker exec -i aed-db psql -U aed -d aed < ../sql/10_citizen_report.sql`
+
+**Offline by design.** Finding an AED never calls the server:
+- `GET /api/cells/:geohash` returns every AED in one geohash-4 cell (~39 x 20 km), including opening rules.
+  The Warsaw centre cell is ~790 sites, 45 KB gzipped. In production it would be a static file on a CDN.
+- While the app is open, `src/mobile/aedCache.js` keeps the user's cell and its 8 neighbours in IndexedDB.
+  It refreshes cells older than 24 h and re-checks when the user moves to a new cell.
+- `src/mobile/aedRules.js` decides on the phone whether an AED is open now. It mirrors `site_open_at()`
+  (Europe/Warsaw, overnight windows), and `nearest_available_aed()` for the ranking.
+- Privacy: the server only learns which ~40 km cell the phone is in, never the position.
+
+**Compass.** iOS asks for motion permission when you tap the AED card (a tap is required).
+Android uses `deviceorientationabsolute`. Headings are corrected for Poland's magnetic declination (+6.5°).
+Without a compass the arrow is drawn relative to north (N).
+
+**Demo panel** (⚙︎, top right). For a projector with no GPS or compass, or a venue with poor data:
+- a simulated position ("Ustaw ~250 m od AED") and a walk to the AED at 1–10× speed
+- a simulated compass (slider, "Obróć w stronę AED")
+- blocking the network, to prove it works offline
+- adding 3 well-described test AEDs around you (stored only on the phone)
+
+The 112 button deliberately does not dial in this prototype.
+
+### On an iPhone
+
+iOS gives location and compass access only to HTTPS pages, and from WSL2 the phone can't reach the dev server
+directly. A Cloudflare quick tunnel solves both, with no account needed:
+
+```bash
+# one-time install (single binary)
+curl -fsSL -o ~/.local/bin/cloudflared \
+  https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+chmod +x ~/.local/bin/cloudflared
+
+npm run dev       # terminal 1
+npm run tunnel    # terminal 2: prints https://<random>.trycloudflare.com
+```
+
+Open `https://<random>.trycloudflare.com` in Safari (the mobile app is served at `/` there), then Share → Add to Home Screen for the full-screen app.
+On iOS, Settings → Privacy & Security → Location Services → Safari Websites must be "While Using".
+Anyone with the URL can reach the dev server while the tunnel runs, so stop it when you're done.
 
 ## Known limitations
 

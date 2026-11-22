@@ -17,4 +17,5 @@ BEGIN;
 \ir 07_functions_views.sql
 \ir 08_seed_data_source.sql
 \ir 09_change_history.sql
+\ir 10_citizen_report.sql
 COMMIT;
