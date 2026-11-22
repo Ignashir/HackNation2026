@@ -6,7 +6,7 @@ dane.gov.pl checks files against the standard and combines all registers into on
 
 | Version | Status | Files |
 |---|---|---|
-| [1.0](1.0/) | draft | [`schema.json`](1.0/schema.json) (Table Schema), [`example.csv`](1.0/example.csv) (Krosno, real data) |
+| [1.0](1.0/) | draft | [`schema.json`](1.0/schema.json) (Table Schema), [`example.csv`](1.0/example.csv) (Krosno, real data), [`AED_wzorcowy_zakres_danych_v1.0.xlsx`](1.0/AED_wzorcowy_zakres_danych_v1.0.xlsx) (spreadsheet: data scope, dictionaries, template, merge rules) |
 
 ## The file
 
@@ -70,6 +70,19 @@ The national list publishes four files: the merged list (one row per device, `ae
 | `manufacturer`, `model`, `udi_di` | `device_model` (+ manufacturer `organization`) |
 | `serial_number`, `status`, `paediatric_capable`, `pads_expiry`, `battery_expiry` | `aed_device` |
 | `operator` | `aed_site.operator_org_id` → `organization` |
+
+## Spreadsheet version
+
+`AED_wzorcowy_zakres_danych_v1.0.xlsx` is generated from `schema.json`; don't edit it by hand. After changing the schema:
+
+```sh
+uv run --no-project --with openpyxl python tools/build_xlsx.py --version 1.0
+```
+
+Sheets: Informacje (rules, column counts, legend), Zakres danych (every column: requirement level, type, format, allowed
+values, PL/EN description, example, accepted header synonyms, role in the national list, database mapping), Słowniki
+(allowed values), Szablon (template with drop-down lists and coordinate checks), Przykład (Krosno), Łączenie rekordów
+(merge rules), Zmiany (changelog).
 
 ## Validating a file
 
