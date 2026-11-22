@@ -1,90 +1,155 @@
-<section class="aed-register container">
-  <h1 class="heading">Krajowy wykaz AED</h1>
-  <p class="lead">
-    Jedna lista defibrylatorów AED z całej Polski. Każdy dostawca (urząd, szpital, firma) publikuje w portalu własny
-    rejestr AED w standardzie danych AED i odpowiada za jego poprawność. Portal codziennie łączy wszystkie zgodne ze
-    standardem rejestry w ten wykaz. Rekordy różnych dostawców opisujące to samo urządzenie są łączone tylko na
-    podstawie jawnych powiązań (same_as) lub numeru seryjnego; wartości pochodzą od dostawcy o najwyższym priorytecie,
-    a każde urządzenie wskazuje wszystkie swoje źródła.
-  </p>
+<!-- Same layout as the DGA list of protected data (dga-information-point-table-page), different columns. -->
+<section class="item-view__body vertical-spacing">
+  <div class="container">
+    <h1 class="heading heading--md">{{ pageTitle }}</h1>
 
-  <p *ngIf="error" class="alert alert-warning">Wykaz nie jest jeszcze dostępny.</p>
+    <p *ngIf="error" class="alert alert-warning mt-4">Wykaz nie jest jeszcze dostępny.</p>
 
-  <ng-container *ngIf="aggregate">
-    <ul class="aed-stats" aria-label="Podsumowanie wykazu">
-      <li><strong>{{ fmt(aggregate.rows) }}</strong><span>urządzeń (z {{ fmt(aggregate.source_rows) }} rekordów dostawców)</span></li>
-      <li><strong>{{ aggregate.providers.length }}</strong><span>rejestrów dostawców</span></li>
-      <li>
-        <strong>{{ fmt(aggregate.merged_devices) }}</strong>
-        <span>urządzeń opisanych przez kilku dostawców (połączone)</span>
-      </li>
-      <li>
-        <strong>{{ fmt(aggregate.possible_duplicates) }} / {{ fmt(aggregate.conflicts) }}</strong>
-        <span>możliwe duplikaty do sprawdzenia / rozbieżności</span>
-      </li>
-      <li>
-        <strong>+{{ aggregate.added }} / ~{{ aggregate.changed }} / −{{ aggregate.removed }}</strong>
-        <span>dodane / zmienione / usunięte od poprzedniej wersji</span>
-      </li>
-      <li><strong>{{ aggregate.built_at | date: 'd.MM.yyyy HH:mm' }}</strong><span>ostatnia aktualizacja</span></li>
-    </ul>
+    <ng-container *ngIf="aggregate && resource">
+      <ul class="list-unstyled mt-4 mb-4">
+        <li>
+          <strong>{{ 'Attribute.ViewsCount' | translate }}: </strong> {{ viewsCount }}
+        </li>
+        <li>
+          <strong>{{ 'Attribute.DownloadCount' | translate }}: </strong> {{ downloadsCount }}
+        </li>
+        <li>
+          <strong>Liczba urządzeń: </strong> {{ fmt(aggregate.rows) }} (z {{ fmt(aggregate.source_rows) }} rekordów
+          {{ aggregate.providers.length }} dostawców)
+        </li>
+        <li><strong>Ostatnia aktualizacja: </strong> {{ aggregate.built_at | date: 'd.MM.yyyy HH:mm' }}</li>
+      </ul>
 
-    <p class="aed-meta">
-      Standard danych: <strong>{{ aggregate.title }} {{ aggregate.version }}</strong> · Wykaz publikuje:
-      <a [routerLink]="datasetUrl(aggregate.dataset_id)">{{ aggregate.owner }}</a>
-    </p>
+      <div class="item-view__actions">
+        <div class="d-flex flex-column flex-lg-row align-items-center">
+          <div class="d-flex flex-column">
+            <div class="d-flex align-items-center flex-wrap">
+              <div class="d-flex align-items-baseline" *ngIf="downloadFilesList.length > 0">
+                <span class="font-weight-bold" style="min-width: 85px"> {{ 'Action.Download' | translate }}: </span>
+                <div *ngFor="let dataFiles of downloadFilesList">
+                  <app-download-link
+                    [fileSize]="dataFiles.file_size"
+                    [fileUrl]="dataFiles.download_url"
+                    [format]="dataFiles.format"
+                    [title]="resource.attributes.title"
+                    [customCssClass]="'btn btn-primary btn-sm mb-1 mr-1'"
+                    [opennessScore]="dataFiles.openness_score"
+                    (click)="downloadResource(resource.attributes.title, dataFiles.download_url)">
+                  </app-download-link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-    <div class="aed-actions">
-      <a class="btn btn-primary" [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.resource_id)">Pobierz wykaz (CSV)</a>
-      <a
-        *ngIf="aggregate.changes_resource_id"
-        class="btn btn-outline-primary"
-        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.changes_resource_id)"
-        >Zmiany od poprzedniej wersji</a
-      >
-      <a
-        *ngIf="aggregate.full_resource_id"
-        class="btn btn-outline-primary"
-        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.full_resource_id)"
-        >Wszystkie rekordy dostawców</a
-      >
-      <a
-        *ngIf="aggregate.conflicts_resource_id"
-        class="btn btn-outline-primary"
-        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.conflicts_resource_id)"
-        >Rozbieżności</a
-      >
-      <a class="btn btn-outline-primary" [href]="apiUrl" target="_blank" rel="noopener">API (JSON)</a>
-    </div>
+      <div class="pb-3">
+        <app-resource-filters [resourceId]="resourceId"></app-resource-filters>
+      </div>
 
-    <h2 class="heading heading--sm">Dostawcy danych</h2>
-    <table class="table aed-providers">
-      <thead>
-        <tr><th scope="col">Dostawca</th><th scope="col" class="num">Rekordy</th><th scope="col" class="num">Priorytet</th><th scope="col">Rejestr</th></tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of aggregate.providers">
-          <td>{{ p.provider }}</td>
-          <td class="num">{{ fmt(p.rows) }}</td>
-          <td class="num">{{ p.precedence }}</td>
-          <td><a [routerLink]="resourceUrl(p.dataset_id, p.resource_id)">zbiór {{ p.dataset_id }}</a></td>
-        </tr>
-      </tbody>
-    </table>
+      <div class="mt-2 mb-5">
+        <div class="tabs">
+          <ul class="tab-list row no-gutters" role="tablist">
+            <li class="tab-list__item col-12 col-md-4" role="presentation">
+              <a
+                class="tab-list__link"
+                role="tab"
+                href="#"
+                [class.tab-list__link--active]="view === 'table'"
+                [attr.aria-selected]="view === 'table' ? true : null"
+                (click)="show('table', $event)">
+                {{ 'Resources.TableView' | translate }}
+              </a>
+            </li>
+            <li class="tab-list__item col-12 col-md-4" role="presentation">
+              <a
+                class="tab-list__link"
+                role="tab"
+                href="#"
+                [class.tab-list__link--active]="view === 'map'"
+                [attr.aria-selected]="view === 'map' ? true : null"
+                (click)="show('map', $event)">
+                {{ 'Resources.MapView' | translate }}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="tabs-content">
+          <app-resource-table-no-filters
+            *ngIf="view === 'table'"
+            [resourceId]="resourceId"
+            tableTitle=""></app-resource-table-no-filters>
+          <div *ngIf="view === 'map'">
+            <app-map *appShellNoRender [resourceId]="resourceId"></app-map>
+          </div>
+        </div>
+      </div>
 
-    <div class="aed-tabs" role="tablist" aria-label="Widok wykazu">
-      <button type="button" role="tab" [attr.aria-selected]="view === 'map'" [class.active]="view === 'map'" (click)="view = 'map'">
-        Mapa
-      </button>
-      <button type="button" role="tab" [attr.aria-selected]="view === 'table'" [class.active]="view === 'table'" (click)="view = 'table'">
-        Tabela
-      </button>
-    </div>
-    <div class="aed-view" *ngIf="view === 'map'">
-      <app-map *appShellNoRender [resourceId]="'' + aggregate.resource_id"></app-map>
-    </div>
-    <div class="aed-view" *ngIf="view === 'table'">
-      <app-resource-table-no-filters [resourceId]="'' + aggregate.resource_id" tableTitle="Krajowy wykaz AED"></app-resource-table-no-filters>
-    </div>
-  </ng-container>
+      <hr />
+      <div>
+        <strong>{{ 'DatasetRestrictions.Self' | translate }}</strong>:
+        <span class="btn-link dga-tiles" (click)="toggleCollapsed()">{{
+          collapsed ? ('Action.Expand' | translate) : ('Action.Collapse' | translate)
+        }}</span>
+        <div class="dga-collapse-container" [class.animate]="showAnimation" *ngIf="!collapsed && dataset">
+          <div>
+            <app-dataset-restrictions [dataset]="dataset"></app-dataset-restrictions>
+          </div>
+        </div>
+      </div>
+      <hr />
+
+      <div class="aed-about">
+        <h2 class="heading heading--sm">O wykazie</h2>
+        <p>
+          Krajowy wykaz AED łączy rejestry defibrylatorów AED publikowane w portalu przez ich dysponentów (urzędy,
+          szpitale, firmy). Każdy dysponent publikuje własny rejestr w standardzie danych
+          <strong>{{ aggregate.title }} {{ aggregate.version }}</strong> i odpowiada za jego poprawność. Portal codziennie
+          łączy wszystkie zgodne rejestry w ten wykaz. Rekordy różnych dysponentów opisujące to samo urządzenie są
+          łączone tylko na podstawie jawnych powiązań (<code>same_as</code>) lub numeru seryjnego; kolumna
+          <code>sources</code> wskazuje wszystkie źródła urządzenia. Wykaz publikuje:
+          <a [routerLink]="datasetUrl(aggregate.dataset_id)">{{ aggregate.owner }}</a>.
+        </p>
+
+        <h3 class="heading heading--xs">Pliki powiązane</h3>
+        <ul>
+          <li *ngIf="aggregate.changes_resource_id">
+            <a [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.changes_resource_id)">Zmiany od poprzedniej wersji</a>
+            (dodane {{ aggregate.added }}, zmienione {{ aggregate.changed }}, usunięte {{ aggregate.removed }})
+          </li>
+          <li *ngIf="aggregate.full_resource_id">
+            <a [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.full_resource_id)">Wszystkie rekordy dysponentów</a>
+            (bez łączenia; {{ fmt(aggregate.merged_devices) }} urządzeń opisanych przez kilku dysponentów)
+          </li>
+          <li *ngIf="aggregate.conflicts_resource_id">
+            <a [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.conflicts_resource_id)">Rozbieżności między dysponentami</a>
+            ({{ fmt(aggregate.conflicts) }}; możliwe duplikaty do sprawdzenia: {{ fmt(aggregate.possible_duplicates) }})
+          </li>
+          <li><a [href]="apiUrl" target="_blank" rel="noopener">API (JSON)</a></li>
+        </ul>
+
+        <h3 class="heading heading--xs">Dysponenci danych</h3>
+        <div class="table-responsive">
+          <table class="table aed-providers">
+            <thead>
+              <tr>
+                <th scope="col">Dysponent</th>
+                <th scope="col" class="num">Rekordy</th>
+                <th scope="col" class="num">Priorytet</th>
+                <th scope="col">Rejestr</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of aggregate.providers">
+                <td>{{ p.provider }}</td>
+                <td class="num">{{ fmt(p.rows) }}</td>
+                <td class="num">{{ p.precedence }}</td>
+                <td><a [routerLink]="resourceUrl(p.dataset_id, p.resource_id)">zbiór {{ p.dataset_id }}</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </ng-container>
+  </div>
 </section>

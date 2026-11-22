@@ -69,9 +69,9 @@ td:first-child { font-weight: 500; white-space: nowrap; }
 .two > div { display: grid; gap: 8px; align-content: start; min-width: 0; }
 .diagram { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--surface); }
 pre.mermaid { margin: 0; background: transparent; }
-.steps { counter-reset: s; list-style: none; padding: 0; }
-.steps li { counter-increment: s; display: grid; grid-template-columns: 28px 1fr; gap: 8px; }
-.steps li::before { content: counter(s); font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.steps { counter-reset: s; list-style: none; padding: 0; gap: 6px; }
+.steps li { counter-increment: s; position: relative; padding-left: 30px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 0; font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
 .small { font-size: 0.85rem; color: var(--muted); }
 footer { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 14px; }
 @media (max-width: 640px) {
@@ -86,7 +86,7 @@ footer { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--li
     <div class="eyebrow">HackNation 2026 · Misja AED · Dane na ratunek</div>
     <h1>Misja AED: how we built a national AED list on dane.gov.pl</h1>
     <p class="lede">Our main ideas, what we found in the dane.gov.pl code, what we changed in its backend and frontend,
-      what we built ourselves, and what is still limited. State as of 22 November 2026, on a local copy of the portal.</p>
+      what we built ourselves, and its limitations. State as of 22 November 2026, on a local copy of the portal.</p>
     <div class="figures" role="list">
       <div role="listitem"><b>31</b><span>columns in the AED data standard (4 required)</span></div>
       <div role="listitem"><b>~300</b><span>lines changed in existing portal files; the rest is a new module</span></div>
@@ -120,7 +120,8 @@ footer { font-size: 0.82rem; color: var(--muted); border-top: 1px solid var(--li
       <li><strong>A generic mechanism, AED first.</strong> Nothing in the backend is AED-specific; AED v1.0 is the first
         standard loaded into it.</li>
       <li><strong>No AI inside the portal.</strong> The portal's mapping of columns is deterministic (names, synonyms,
-        value patterns). AI-assisted conversion of messy files belongs to our external tool.</li>
+        value patterns). Turning messy files into the standard is the job of our external converter, which runs in
+        the provider's browser.</li>
       <li><strong>Merging is rule-based and transparent.</strong> Records become one device only on hard evidence.
         Everything else is flagged, never silently merged.</li>
       <li><strong>Reuse the portal's own patterns.</strong> The national list copies how the DGA list works; harvested
@@ -217,8 +218,10 @@ flowchart LR
   <section>
     <h2><span class="n">5</span>Frontend changes</h2>
     <ul>
-      <li>New page <code>/pl/aed</code>, “Krajowy wykaz AED”: totals, merge statistics, providers with their
-        precedence, links to the four files and the API, map and table of the list.</li>
+      <li>New page <code>/pl/aed</code>, “Krajowy wykaz AED”, laid out like the portal's DGA list of protected data:
+        the national list resource shown in the portal's own table (with search, filters and a map tab), view and
+        download counts, download buttons and usage conditions. Below it: the changes, all-rows and conflicts
+        files, the API, and the providers with their precedence.</li>
       <li>A “Wykaz AED” menu item and a standard badge on dataset pages bound to a standard.</li>
       <li>Built from the portal's existing Angular components and translation files (PL/EN).</li>
     </ul>
@@ -238,6 +241,22 @@ flowchart LR
 
   <section>
     <h2><span class="n">7</span>Our own tooling</h2>
+    <h3>Converter (AEDane): any register in, a standard file out</h3>
+    <p>A single HTML page for people without technical training. It runs entirely in the browser: no server, and the
+      data never leaves the provider's computer. One step per screen, plain explanations and a preview of what will go
+      into the file.</p>
+    <ol class="steps">
+      <li><strong>Load</strong> CSV/TSV (UTF-8 or Windows-1250), XLSX, JSON, GeoJSON, XML, KML or GML. GML coordinates
+        in the Polish PUWG 1992 and PUWG 2000 systems are converted to WGS 84.</li>
+      <li><strong>Match columns.</strong> For each of the 31 fields it proposes a column from its name and its contents
+        (postcodes, coordinate ranges, dates, hours). Any choice can be changed, set to a fixed value, or for
+        <code>aed_id</code> generated.</li>
+      <li><strong>Fix values.</strong> It splits full addresses and coordinate pairs, converts dates and Polish opening
+        hours (<code>pn-pt 7-19</code> → <code>Mo-Fr 07:00-19:00</code>), swaps reversed coordinates, and shows each
+        change. Remaining errors can be corrected in place.</li>
+      <li><strong>Download</strong> a standard CSV and JSON, a problem report, a dataset description for dane.gov.pl,
+        and a mapping file to reuse with the next update.</li>
+    </ol>
     <div class="two">
       <div>
         <h3>Data</h3>
@@ -255,18 +274,57 @@ flowchart LR
         <ul>
           <li><strong>Map app</strong>: pins coloured by open now, closed or out of service, clustering, nearest
             available AED.</li>
-          <li><strong>Mobile concept</strong>: an offline “nearest AED” finder, and “Skaner AED” for reporting a new,
-            missing or broken AED with a photo. Reports wait for the provider's review and never change data
-            directly.</li>
+          <li><strong>Mobile mock-up in mObywatel</strong>: see the next section.</li>
         </ul>
       </div>
     </div>
   </section>
 
   <section>
-    <h2><span class="n">8</span>How a provider publishes</h2>
+    <h2><span class="n">8</span>Mobile: AED in mObywatel (mock-up)</h2>
+    <p>Most people in an emergency will not open a data portal. They have mObywatel, the government app, already on
+      their phone. We built a clickable mock-up of mObywatel (its tabs Dokumenty, Usługi, Kod QR and Więcej, in light
+      and dark mode) where only the AED features work. The emblem and wording are generic, not the official
+      branding.</p>
+    <div class="two">
+      <div>
+        <h3>Najbliższy AED (finding)</h3>
+        <ul>
+          <li>A green pill in the app header shows the distance to the nearest available AED, on every tab.</li>
+          <li>The finder shows an arrow (compass corrected for magnetic declination in Poland), the distance, and what
+            helps on site: placement, floor, access, how to open the cabinet, opening hours.</li>
+          <li>Works without signal: the phone keeps the AEDs of its area (about 40 × 20 km cells) and decides “open now”
+            itself. The server only learns which cell the phone is in, never its position.</li>
+          <li>A “Zadzwoń 112” button and a short how-to-use-an-AED guide (the demo does not dial).</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Skaner AED (reporting)</h3>
+        <ul>
+          <li>A citizen takes a photo at an AED. If a known AED is within 25–60 m, they confirm it or report a problem:
+            locked, broken, missing or moved. Otherwise they describe a new AED.</li>
+          <li>Reports without signal wait on the phone and are sent later; “Twoje zgłoszenia” shows each one's state.</li>
+          <li>A report never changes data. It waits for the provider's review; the photo is evidence for the reviewer.</li>
+        </ul>
+      </div>
+    </div>
+    <h3>How it would connect to mObywatel and dane.gov.pl</h3>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Part</th><th>Possible integration</th></tr></thead>
+      <tbody>
+        <tr><td>AED data</td><td>mObywatel reads the Krajowy wykaz AED from dane.gov.pl (API or CSV), the same open data anyone can use. It splits the list into static map cells on its own servers and refreshes them daily using the changes file</td></tr>
+        <tr><td>Identity</td><td>Reports come from citizens logged in to mObywatel, which stops anonymous spam. The provider sees only a pseudonymous reference, not who reported</td></tr>
+        <tr><td>Accountability</td><td>Each AED in the national list carries its provider. A report goes to that provider's review queue; the provider accepts it and updates its own register, which reaches the national list on the next build. Citizens never publish, so the rule “each provider is accountable for its data” holds</td></tr>
+        <tr><td>Emergency number 112</td><td>Calling 112 from the finder sends the caller's exact location (AML), as phones already do. The dispatcher could see which AED the app is guiding to and give the cabinet code (<code>unlock_method = code_112</code>)</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section>
+    <h2><span class="n">9</span>How a provider publishes</h2>
     <ol class="steps">
       <li>The representative creates an AED dataset and selects the data standard “AED 1.0”.</li>
+      <li>If their register has other columns or another format, they run it through the converter.</li>
       <li>They upload the file, or register our generated feed once.</li>
       <li>The portal suggests the column mapping and checks the file. If it conforms, it is published and its map is set
         up. If not, it stays a draft and the “Data standard” tab says why.</li>
@@ -275,7 +333,7 @@ flowchart LR
   </section>
 
   <section>
-    <h2><span class="n">9</span>Results on real data</h2>
+    <h2><span class="n">10</span>Results on real data</h2>
     <div class="table-wrap"><table>
       <thead><tr><th>Provider file</th><th>Result</th></tr></thead>
       <tbody>
@@ -292,39 +350,33 @@ flowchart LR
   </section>
 
   <section>
-    <h2><span class="n">10</span>Limitations</h2>
+    <h2><span class="n">11</span>Limitations</h2>
     <div class="limit">
       <ul>
         <li><strong>Licensing.</strong> 18,310 of the devices come from OpenStreetMap, licensed ODbL. dane.gov.pl only
-          offers Creative Commons licences, so on the real portal the list would start with the providers' own data
-          (about 50 AEDs today). The mechanism works; completeness depends on providers joining.</li>
-        <li><strong>The portal patch needs the portal team's acceptance.</strong> It is small and additive, but it is a
-          change to their code.</li>
-        <li><strong>Local prototype.</strong> Runs on a local copy of the portal; the nightly schedule is triggered by
-          hand there, and old list files are not cleaned up yet.</li>
-        <li><strong>Not done yet:</strong> rejection reasons in the harvest report and email, a search filter by
-          standard, tests in the portal's test suite, our AI-assisted converter, precedence per institution (only per
-          institution type).</li>
-        <li><strong>Accessibility (WCAG 2.2 AA) not audited yet</strong>; the map pins rely on colour.</li>
+          offers Creative Commons licences, so on the real portal the list starts with the providers' own data (about
+          50 AEDs today). The mechanism works; completeness depends on providers joining.</li>
+        <li><strong>The portal patch requires the portal team's acceptance.</strong> It is small and additive, but it
+          changes their code.</li>
+        <li><strong>Local copy of the portal.</strong> Everything runs on a local installation; there the nightly
+          build of the national list is started by hand.</li>
+        <li><strong>Scope of the portal changes.</strong> The harvest report and email do not list why a harvested file
+          was held; the dataset search has no filter by standard; the changes are not covered by the portal's test
+          suite; provider precedence is set per institution type, not per institution.</li>
+        <li><strong>Separate tools.</strong> The converter and the feed generator are separate: a provider converts a
+          file first, then publishes it by upload or feed.</li>
+        <li><strong>mObywatel is a mock-up.</strong> It runs on our own API and database, not on mObywatel or the
+          national list, and does not dial 112.</li>
+        <li><strong>Accessibility (WCAG 2.2 AA) was not audited</strong>; the map pins rely on colour.</li>
         <li><strong>Data quality stays with providers.</strong> One Marki AED was left out of the corrected file because
           its coordinates in the source point to Krosno.</li>
       </ul>
     </div>
   </section>
 
-  <section>
-    <h2><span class="n">11</span>Next steps</h2>
-    <ul>
-      <li>Accessibility audit and fixes; then screenshots and the presentation.</li>
-      <li>AI-assisted converter on our side: messy file in, standard file and feed out.</li>
-      <li>Harvest report reasons, search filter, portal tests.</li>
-      <li>The campaign that brings providers in: name, logo and outreach to town halls.</li>
-    </ul>
-  </section>
-
   <footer>
     Sources in the repository: <code>solution/standard/aed</code> (standard and spreadsheet),
-    <code>solution/portal_patch</code> (backend patch and frontend files), <code>solution/feed</code>,
-    <code>solution/importer</code>, <code>solution/app</code>, <code>solution/docs/backend_integration_plan.md</code>.
+    <code>solution/portal_patch</code> (backend patch and frontend files), <code>solution/konwerter</code>,
+    <code>solution/feed</code>, <code>solution/importer</code>, <code>solution/app</code> (map and mObywatel mock-up).
   </footer>
 </main>
