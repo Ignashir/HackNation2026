@@ -27,8 +27,15 @@
   h1 { font-size: 1.6rem; margin: 0 0 4px; }
   .site-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; }
   .site-head h1 { margin: 0; }
-  /* The logo is a white-background JPG: rounded corners make it read as a badge in dark mode. */
+  /* Colour logo (JPG) on the light theme; white logo (transparent PNG) on the dark theme. */
   .brand { display: block; height: 44px; width: auto; border-radius: 6px; margin-left: auto; }
+  .brand-dark { display: none; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .brand-light { display: none; }
+    :root:not([data-theme="light"]) .brand-dark { display: block; }
+  }
+  :root[data-theme="dark"] .brand-light { display: none; }
+  :root[data-theme="dark"] .brand-dark { display: block; }
   @media (max-width: 420px) {
     .site-head h1 { font-size: 1.3rem; }
     .brand { height: 30px; }
@@ -62,6 +69,8 @@
   .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   [role="tabpanel"]:focus { outline: none; }
   .promo-video { display: block; width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; background: #000; }
+  .promo-spot { margin: 0; }
+  .promo-spot figcaption { margin-top: 8px; font-size: .86rem; }
   .material { display: grid; gap: 10px; }
   .material-head { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; }
   .material-head h3 { margin: 0; font-size: 1rem; }
@@ -71,13 +80,65 @@
   .material-actions a:hover, .material-actions a:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
   .pdf-frame { width: 100%; height: 80vh; min-height: 420px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
   .pdf-fallback { padding: 16px; }
+
+  /* Akcja promocyjna: the campaign plan (from akcja-promocyjna-berAEDy.pdf) as a page */
+  .promo { --red: #e30b2c; --navy: #15213b; --bar: var(--navy); --panel: #15213b; --chip: #26324a; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .promo { --red: #ff4d63; --bar: #9aa3b2; --panel: #0b111c; --chip: #1f2a3d; } }
+  :root[data-theme="dark"] .promo { --red: #ff4d63; --bar: #9aa3b2; --panel: #0b111c; --chip: #1f2a3d; }
+  .promo { margin-top: 32px; }
+  .promo-eyebrow { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; font-size: .78rem;
+                   letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+  .promo-eyebrow .tag { color: var(--red); }
+  .promo-eyebrow .src { color: var(--muted); letter-spacing: .02em; text-transform: none; font-family: ui-monospace, Menlo, monospace; font-weight: 600; }
+  .promo h2.promo-title { font-size: clamp(1.45rem, 4.6vw, 2rem); line-height: 1.2; margin: 6px 0 12px; }
+  .promo .lead { color: var(--muted); max-width: 62ch; }
+  .promo h3 { font-size: 1rem; margin: 28px 0 10px; }
+  .promo .sub { color: var(--muted); margin-top: -4px; }
+  .audiences { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 10px; }
+  .audiences div { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .audiences strong { display: block; font-size: .92rem; margin-bottom: 4px; }
+  .audiences p { margin: 0; color: var(--muted); font-size: .84rem; }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; counter-reset: step; }
+  .steps li { list-style: none; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .steps li.key { border: 2px solid var(--red); }
+  .steps li::before { counter-increment: step; content: counter(step); display: block; color: var(--red);
+                      font-size: 1.6rem; font-weight: 800; line-height: 1.1; margin-bottom: 6px; }
+  .steps strong { display: block; margin-bottom: 6px; }
+  .steps p { margin: 0; color: var(--muted); font-size: .9rem; }
+  ol.steps { padding: 0; margin: 0; }
+  .converter { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; align-items: start; }
+  .converter ul { margin: 10px 0 0; padding-left: 18px; }
+  .converter li { margin-bottom: 6px; }
+  .converter li::marker { color: var(--red); }
+  .mock { margin: 0; background: var(--panel); color: #e8ebf0; border-radius: 10px; padding: 14px;
+          font: .8rem/1.4 ui-monospace, Menlo, Consolas, monospace; }
+  .mock .bar { display: flex; align-items: center; gap: 6px; color: #9aa3b2; margin-bottom: 10px; overflow-wrap: anywhere; }
+  .mock .bar i { width: 8px; height: 8px; border-radius: 50%; background: #3b465c; flex: 0 0 auto; }
+  .mock .row { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 6px; align-items: center; margin-bottom: 5px; }
+  .mock .from, .mock .to { padding: 5px 8px; border-radius: 4px; overflow-wrap: anywhere; }
+  .mock .from { background: var(--chip); }
+  .mock .to { background: #e30b2c; color: #fff; font-weight: 700; }
+  .mock .arrow, .mock .ok { color: #9aa3b2; }
+  .mock figcaption { border-top: 1px solid #2c3850; margin-top: 10px; padding-top: 10px; font-weight: 700; }
+  .plan { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+  .plan section { border-top: 4px solid var(--bar); padding-top: 10px; }
+  .plan section:first-child { border-top-color: var(--red); }
+  .plan .when { color: var(--muted); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; }
+  .plan h4 { margin: 2px 0 6px; font-size: 1rem; }
+  .plan ul { margin: 0; padding-left: 18px; font-size: .9rem; }
+  .plan li { margin-bottom: 4px; }
+  .metrics th { font-size: .74rem; letter-spacing: .06em; text-transform: uppercase; }
+  .metrics td + td { font-weight: 700; white-space: nowrap; }
+  .promo .note { color: var(--muted); font-size: .84rem; margin-top: 12px; max-width: 62ch; }
 </style>
 </head>
 <body>
 <main>
   <header class="site-head">
     <h1>HackNation AED</h1>
-    <img class="brand" src="media/beraedy-logo.jpg" width="462" height="96"
+    <img class="brand brand-light" src="media/beraedy-logo.jpg" width="462" height="96"
+         alt="#be_rAEDy – Bądź gotowy. Czas to życie.">
+    <img class="brand brand-dark" src="media/beraedy-logo-white.png" width="462" height="96"
          alt="#be_rAEDy – Bądź gotowy. Czas to życie.">
   </header>
 
@@ -136,12 +197,115 @@
   </section>
 
   <section id="panel-promocja" role="tabpanel" aria-labelledby="tab-promocja" tabindex="-1" lang="pl" hidden>
-    <h2>Akcja promocyjna</h2>
-    <video class="promo-video" controls playsinline preload="metadata"
-           poster="media/berAEDy-poster.jpg" aria-label="Film berAEDy">
-      <source src="media/berAEDy.mp4" type="video/mp4">
-      Twoja przeglądarka nie odtwarza wideo. <a href="media/berAEDy.mp4">Pobierz film (MP4)</a>.
-    </video>
+    <h2>Akcja promocyjna – Spot</h2>
+    <figure class="promo-spot">
+      <video class="promo-video" controls playsinline preload="metadata"
+             poster="media/berAEDy-poster.jpg" aria-label="Spot #be_rAEDy">
+        <source src="media/berAEDy.mp4" type="video/mp4">
+        Twoja przeglądarka nie odtwarza wideo. <a href="media/berAEDy.mp4">Pobierz film (MP4)</a>.
+      </video>
+      <figcaption class="muted">Film został wygenerowany z użyciem AI (DaVinci oraz ElevenLabs).</figcaption>
+    </figure>
+
+    <article class="promo">
+      <div class="promo-eyebrow"><span class="tag">Akcja promocyjna</span><span class="src">Plan akcji promocyjnej · HackNation 2026</span></div>
+      <h2 class="promo-title">Jak zamienić hasztag w opublikowane dane</h2>
+      <p class="lead">Spot i materiały budują uwagę, ale akcja ma jeden mierzalny cel: żeby każdy dysponent AED
+        opublikował swoje urządzenia na dane.gov.pl w jednym standardzie. Dziś tylko około 4% rekordów o AED w Polsce
+        pochodzi od samych właścicieli urządzeń, a reszta to praca wolontariuszy OpenStreetMap.</p>
+
+      <h3>Do kogo mówimy</h3>
+      <div class="audiences">
+        <div><strong>Gminy i miasta</strong><p>Mają rejestry AED w arkuszach i najwięcej urządzeń publicznych. Pierwsza fala listów.</p></div>
+        <div><strong>Szpitale, WSSE, służby</strong><p>Dane o AED w budynkach publicznych i karetkach. Autorytet dla reszty rynku.</p></div>
+        <div><strong>Szkoły i uczelnie</strong><p>Tysiące AED z programów rządowych, często nieobecnych na żadnej mapie.</p></div>
+        <div><strong>Biurowce, galerie, dworce</strong><p>AED dostępne dla tłumu, ale za recepcją. Kluczowe są godziny dostępu.</p></div>
+        <div><strong>Dystrybutorzy i serwisanci</strong><p>Znają numery seryjne i daty przeglądów. Mogą publikować w imieniu klientów.</p></div>
+      </div>
+
+      <h3>Bądź gotowy w 3 krokach</h3>
+      <p class="sub">Ten sam komunikat w liście, na stronie akcji i na końcu każdego webinaru.</p>
+      <ol class="steps">
+        <li><strong>Weź rejestr, który już masz</strong><p>Arkusz Excel, plik CSV, eksport z systemu majątkowego lub warstwa GIS. Nie trzeba niczego przepisywać.</p></li>
+        <li class="key"><strong>Przepuść go przez konwerter #be_rAEDy</strong><p>Konwerter sam rozpozna kolumny, poprawi typowe błędy i zapisze plik w standardzie AED 2.0.</p></li>
+        <li><strong>Opublikuj na dane.gov.pl</strong><p>Wgraj plik jako zasób swojej instytucji i ustaw aktualizację. Odbierz odznakę „Jesteśmy #be_rAEDy”.</p></li>
+      </ol>
+
+      <h3>Konwerter: z dowolnego formatu do standardu</h3>
+      <div class="converter">
+        <div>
+          <p>Najczęstsza odpowiedź dysponentów brzmi: „mamy dane, ale w innym układzie”. Konwerter to jedna strona
+            w przeglądarce, która zamienia rejestr w dowolnym układzie kolumn na plik zgodny ze standardem AED 2.0,
+            gotowy do wgrania na dane.gov.pl.</p>
+          <ul>
+            <li>Czyta CSV, Excel (XLSX), JSON, GeoJSON, XML, KML i GML.</li>
+            <li>Sam dopasowuje własne nazwy kolumn do pól standardu. Wystarczą 4 pola: identyfikator, szerokość,
+              długość geograficzna i nazwa.</li>
+            <li>Przelicza współrzędne z PUWG 1992 i 2000 na GPS, dzieli adresy, zamienia „pn–pt 8–16” na zapis godzin otwarcia.</li>
+            <li>Sprawdza wartości i prowadzi przez poprawki w 5 prostych krokach, dla osób bez przygotowania technicznego.</li>
+            <li>Działa lokalnie: dane nie opuszczają komputera urzędnika.</li>
+          </ul>
+        </div>
+        <figure class="mock" aria-label="Przykład: konwerter dopasowuje kolumny rejestru gminy do pól standardu">
+          <div class="bar"><i></i><i></i><i></i><span>rejestr_AED_gmina.xlsx → aed-pl 2.0</span></div>
+          <div class="row"><span class="from">Nr inwentarzowy</span><span class="arrow">→</span><span class="to">aed_id</span><span class="ok">✓</span></div>
+          <div class="row"><span class="from">Miejsce</span><span class="arrow">→</span><span class="to">name</span><span class="ok">✓</span></div>
+          <div class="row"><span class="from">X, Y (PUWG 1992)</span><span class="arrow">→</span><span class="to">lat, lon</span><span class="ok">✓</span></div>
+          <div class="row"><span class="from">Adres</span><span class="arrow">→</span><span class="to">street, city…</span><span class="ok">✓</span></div>
+          <div class="row"><span class="from">Dostępność: pn–pt 7–15</span><span class="arrow">→</span><span class="to">opening_hours</span><span class="ok">✓</span></div>
+          <div class="row"><span class="from">Data przeglądu</span><span class="arrow">→</span><span class="to">last_verified</span><span class="ok">✓</span></div>
+          <figcaption>42 urządzenia · 0 błędów · 3 ostrzeżenia<br>Pobierz plik CSV gotowy dla dane.gov.pl</figcaption>
+        </figure>
+      </div>
+
+      <h3>Plan akcji</h3>
+      <div class="plan">
+        <section>
+          <div class="when">Start · tygodnie 1–2</div>
+          <h4>Uwaga</h4>
+          <ul>
+            <li>Premiera spotu 30 s „Czas to życie” online i w telewizji regionalnej</li>
+            <li>List do 2477 gmin z linkiem do konwertera</li>
+            <li>Naklejki na szafki AED dla pierwszych dysponentów</li>
+          </ul>
+        </section>
+        <section>
+          <div class="when">Miesiące 1–3</div>
+          <h4>Wsparcie</h4>
+          <ul>
+            <li>Cotygodniowe webinary „Opublikuj AED w 15 minut” z pokazem konwertera</li>
+            <li>Wzór pisma i instrukcja w 3 krokach do pobrania</li>
+            <li>Pomoc mailowa dla urzędników</li>
+          </ul>
+        </section>
+        <section>
+          <div class="when">Od miesiąca 4</div>
+          <h4>Rywalizacja</h4>
+          <ul>
+            <li>„Mapa gotowości”: ranking województw i gmin według opublikowanych AED</li>
+            <li>Odznaka „Jesteśmy #be_rAEDy” dla instytucji</li>
+            <li>Coroczne przypomnienie o aktualizacji danych</li>
+          </ul>
+        </section>
+      </div>
+
+      <h3>Jak zmierzymy sukces</h3>
+      <div class="card table-wrap">
+        <table class="metrics">
+          <thead>
+            <tr><th scope="col">Miernik</th><th scope="col">Dziś</th><th scope="col">Cel po 12 miesiącach</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Rekordy AED pochodzące od dysponentów</td><td>ok. 4%</td><td>50%</td></tr>
+            <tr><td>AED zweryfikowane w ostatnich 12 miesiącach</td><td>ok. 25%</td><td>70%</td></tr>
+            <tr><td>Instytucje publikujące dane AED na dane.gov.pl</td><td>pojedyncze</td><td>500</td></tr>
+            <tr><td>Gminy z opublikowanym rejestrem AED</td><td>—</td><td>co czwarta</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Stan wyjściowy: analiza 18 303 AED z OpenAEDMap, listopad 2026. Cele są propozycją do ustalenia
+        z KPRM i dane.gov.pl.</p>
+    </article>
   </section>
 
   <section id="panel-materials" role="tabpanel" aria-labelledby="tab-materials" tabindex="-1" hidden>
