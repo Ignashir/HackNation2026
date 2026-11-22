@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rejestr xmlns="urn:przyklad:aed" wygenerowano="2026-11-20">
+  <naglowek><jednostka>PRZYKŁAD · Starostwo Powiatowe</jednostka></naglowek>
+  <defibrylator id="SP-01">
+    <nazwa>PRZYKŁAD · Starostwo, budynek A</nazwa>
+    <adres><ulica>ul. Przykładowa</ulica><nr>3</nr><kod>32-050</kod><miasto>Skawina</miasto></adres>
+    <polozenie lat="50.06210" lon="19.82710"/>
+    <opis><![CDATA[Parter, hol główny, obok punktu informacji & kancelarii]]></opis>
+    <dostepnosc>w godzinach pracy urzędu</dostepnosc>
+    <godziny>pn-pt 7:30-15:30</godziny>
+    <telefon>12 000 00 11</telefon>
+    <dataWeryfikacji>2026-11-12</dataWeryfikacji>
+  </defibrylator>
+  <defibrylator id="SP-02">
+    <nazwa>PRZYKŁAD · Starostwo, budynek B</nazwa>
+    <adres><ulica>ul. Przykładowa</ulica><nr>5</nr><kod>32-050</kod><miasto>Skawina</miasto></adres>
+    <polozenie lat="50.06230" lon="19.82790"/>
+    <opis>Na zewnątrz, szafka przy wejściu od parkingu</opis>
+    <dostepnosc>ogólnodostępny</dostepnosc>
+    <godziny>całodobowo</godziny>
+    <telefon>12 000 00 12</telefon>
+    <dataWeryfikacji>2026-11-12</dataWeryfikacji>
+  </defibrylator>
+</rejestr>
