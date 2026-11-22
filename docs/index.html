@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AED Demo Links</title>
+<meta name="description" content="Buttons for every service of the HackNation AED demo running on a laptop on the same Wi-Fi.">
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #16191f; --muted: #5b6372; --line: #dde1e7;
+    --accent: #0b5cd5; --accent-text: #ffffff; --soft: #e8f0fd; --warn-bg: #fff6e0; --warn-line: #f0c35a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111418; --card: #1a1f26; --text: #e8ebf0; --muted: #9aa3b2; --line: #2c333d;
+      --accent: #5b9bff; --accent-text: #0b1220; --soft: #1d2a3f; --warn-bg: #2d2612; --warn-line: #7a6223;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111418; --card: #1a1f26; --text: #e8ebf0; --muted: #9aa3b2; --line: #2c333d;
+    --accent: #5b9bff; --accent-text: #0b1220; --soft: #1d2a3f; --warn-bg: #2d2612; --warn-line: #7a6223;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; }
+  h2 { font-size: 1.05rem; margin: 28px 0 10px; }
+  p { margin: 0 0 10px; }
+  .muted { color: var(--muted); font-size: .92rem; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
+  form { display: flex; gap: 8px; flex-wrap: wrap; }
+  input { flex: 1 1 220px; min-width: 0; font: inherit; padding: 10px 12px; border-radius: 8px;
+          border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  button, .btn { font: inherit; cursor: pointer; border-radius: 8px; text-decoration: none; }
+  form button { padding: 10px 16px; border: 0; background: var(--accent); color: var(--accent-text); font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+  .btn { display: block; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); color: var(--text); }
+  .btn:hover, .btn:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
+  .btn strong { display: block; color: var(--accent); }
+  .btn span { display: block; color: var(--muted); font-size: .86rem; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); }
+  .btn.primary strong, .btn.primary span { color: var(--accent-text); }
+  .warn { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 12px; padding: 12px 16px; }
+  details { margin-top: 10px; }
+  summary { cursor: pointer; font-weight: 600; }
+  ol { margin: 8px 0 0; padding-left: 20px; }
+  li { margin-bottom: 4px; }
+  code { font-size: .88em; overflow-wrap: anywhere; }
+  .qr { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  #qr { background: #fff; padding: 10px; border-radius: 8px; line-height: 0; }
+  #qr img, #qr canvas { width: 160px; height: 160px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>HackNation AED demo</h1>
+  <p class="muted">The demo runs on a laptop. Your device must be on the <strong>same Wi-Fi</strong> as the laptop
+    (not mobile data, no VPN).</p>
+
+  <h2>Laptop address</h2>
+  <div class="card">
+    <form id="ip-form">
+      <input id="ip" name="ip" inputmode="decimal" autocomplete="off" spellcheck="false"
+             placeholder="e.g. 10.250.162.60" aria-label="Laptop IP address">
+      <button type="submit">Use</button>
+    </form>
+    <p class="muted" style="margin-top:8px">The laptop prints it when the demo starts (<code>./laptop.sh</code>).
+      It changes when the laptop joins another network.</p>
+    <p id="error" class="hidden" role="alert" style="color:#d33;margin:8px 0 0">Enter an IPv4 address like 10.250.162.60.</p>
+  </div>
+
+  <div id="links" class="hidden">
+    <h2>1. Trust the laptop's certificate (once per device)</h2>
+    <div class="warn">
+      <p>Without this, browsers show security warnings and the portal pages stay empty.</p>
+      <a class="btn primary" id="ca" href="#"><strong>Download certificate</strong><span>plain http, works before it is trusted</span></a>
+      <details>
+        <summary>iPhone / iPad</summary>
+        <ol>
+          <li>Open the button above in <strong>Safari</strong> and tap Allow.</li>
+          <li>Settings → Profile Downloaded → Install.</li>
+          <li>Settings → General → About → Certificate Trust Settings → turn on <em>Caddy Local Authority</em>.</li>
+        </ol>
+      </details>
+      <details>
+        <summary>Android</summary>
+        <ol>
+          <li>Download the certificate with the button above.</li>
+          <li>Settings → Security → Encryption &amp; credentials → Install a certificate → CA certificate.</li>
+        </ol>
+      </details>
+      <details>
+        <summary>Mac / Windows</summary>
+        <ol>
+          <li>Mac: open the downloaded file, add it to <em>System</em> in Keychain Access, double-click it and set
+            <em>Always Trust</em>.</li>
+          <li>Windows: open the file → Install Certificate → Local Machine → <em>Trusted Root Certification Authorities</em>.</li>
+          <li>Restart the browser.</li>
+        </ol>
+      </details>
+    </div>
+
+    <h2>2. AED</h2>
+    <div class="grid">
+      <a class="btn" data-host="aed" href="#"><strong>AED map</strong><span>all AED sites on a map</span></a>
+      <a class="btn" data-host="m" href="#"><strong>AED finder (mobile)</strong><span>nearest AED, works offline</span></a>
+      <a class="btn" data-host="" data-path="/pl/aed" href="#"><strong>National AED list</strong><span>portal page, map and table</span></a>
+      <a class="btn" data-host="konwerter" href="#"><strong>AED data converter</strong><span>convert a register to the standard</span></a>
+    </div>
+
+    <h2>3. Open data portal</h2>
+    <div class="grid">
+      <a class="btn" data-host="" data-path="/pl" href="#"><strong>Portal</strong><span>home page</span></a>
+      <a class="btn" data-host="" data-path="/pl/dataset" href="#"><strong>Data</strong><span>datasets and files</span></a>
+      <a class="btn" data-host="admin" href="#"><strong>Admin panel</strong><span>providers and datasets</span></a>
+      <a class="btn" data-host="cms" href="#"><strong>CMS</strong><span>portal content (Wagtail)</span></a>
+    </div>
+
+    <h2>4. Team tools</h2>
+    <div class="grid">
+      <a class="btn" data-host="mail" href="#"><strong>E-mail</strong><span>messages the portal sends (login)</span></a>
+      <a class="btn" data-host="flower" href="#"><strong>Flower</strong><span>background tasks (login)</span></a>
+    </div>
+
+    <h2>Open this page on a phone</h2>
+    <div class="card qr">
+      <div id="qr" aria-label="QR code with this page and the laptop address"></div>
+      <p class="muted" style="flex:1 1 200px;margin:0">Scan to open these buttons on a phone with the address already
+        filled in. Link: <code id="share"></code></p>
+    </div>
+
+    <p class="muted" style="margin-top:24px">Nothing loads? Try the certificate button first: it uses plain http.
+      If it times out, the device can't reach the laptop (different network, mobile data, or the Wi-Fi blocks
+      devices from talking to each other: use a phone hotspot for all devices).</p>
+  </div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+  const IPV4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
+  const STORE = 'aed-demo-ip';
+  const input = document.getElementById('ip');
+
+  function load() {
+    const fromUrl = new URLSearchParams(location.search).get('ip');
+    if (fromUrl) return fromUrl;
+    try { return localStorage.getItem(STORE) || ''; } catch { return ''; }
+  }
+
+  function apply(raw) {
+    // Accept "10.250.162.60", "10-250-162-60" or a pasted "...10-250-162-60.sslip.io" URL.
+    const m = String(raw).trim().match(/(\d{1,3}[.-]\d{1,3}[.-]\d{1,3}[.-]\d{1,3})/);
+    const ip = m ? m[1].replace(/-/g, '.') : '';
+    const valid = IPV4.test(ip);
+    document.getElementById('error').classList.toggle('hidden', valid || !raw);
+    document.getElementById('links').classList.toggle('hidden', !valid);
+    if (!valid) return;
+
+    input.value = ip;
+    const domain = ip.replace(/\./g, '-') + '.sslip.io';
+    try { localStorage.setItem(STORE, ip); } catch {}
+    const url = new URL(location.href);
+    url.searchParams.set('ip', ip);
+    history.replaceState(null, '', url);
+
+    document.getElementById('ca').href = `http://ca.${domain}/`;
+    for (const a of document.querySelectorAll('a[data-host]')) {
+      const host = a.dataset.host ? `${a.dataset.host}.${domain}` : domain;
+      a.href = `https://${host}${a.dataset.path || '/'}`;
+    }
+
+    document.getElementById('share').textContent = url.href;
+    const box = document.getElementById('qr');
+    box.textContent = '';
+    if (window.QRCode) new QRCode(box, { text: url.href, width: 320, height: 320, correctLevel: QRCode.CorrectLevel.M });
+    else box.textContent = 'QR code unavailable offline';
+  }
+
+  document.getElementById('ip-form').addEventListener('submit', (e) => { e.preventDefault(); apply(input.value); });
+  apply(load());
+</script>
+</body>
+</html>

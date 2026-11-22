@@ -21,6 +21,8 @@ class SiteFields:
     wheelchair_accessible: bool | None = None
     cabinet_locked: bool | None = None
     last_verified_at: date | None = None
+    device_count_reported: int | None = None
+    position_accuracy_m: int | None = None     # set by sources that geocode (geocode_method 'address')
 
     def columns(self) -> dict[str, object]:
         """aed_site column -> value, for the values this record provides."""
@@ -58,7 +60,8 @@ class Source(Protocol):
     politeness: Politeness
     min_refresh: timedelta
     creates_sites: bool
-    geocode_method: str
+    geocode_method: str       # aed_site.geocode_method; 'address' = geocoded, never replaces a surveyed position
+    # optional: match_radius_m (float), for sources whose positions are less precise than the default 30 m
 
     def fetch(self, http: PoliteClient) -> Pull: ...
 

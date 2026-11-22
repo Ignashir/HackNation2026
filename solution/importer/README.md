@@ -18,7 +18,7 @@ export AED_IMPORT_CONTACT="you@example.org"   # optional, added to the User-Agen
 ```sh
 cd solution
 docker compose up -d --wait   # PostGIS on 127.0.0.1:54329, schema created on first start
-./pull_all.sh                 # OpenAEDMap, then WarsawAPI; extra args (e.g. --force) go to each import
+./pull_all.sh                 # OpenAEDMap, WarsawAPI, then Krakow; extra args (e.g. --force) go to each import
 ```
 
 Data lives in the `aed-data` volume and survives restarts. `docker compose down -v` deletes it.
@@ -27,7 +27,7 @@ Connect with `postgresql://aed:aed@127.0.0.1:54329/aed`.
 ## Run an import
 
 ```sh
-uv run python -m aed_import OpenAEDMap   # or: OSM (Overpass), WarsawAPI
+uv run python -m aed_import OpenAEDMap   # or: OSM (Overpass), WarsawAPI, Krakow
 uv run python -m aed_import OSM --force  # ignore the source's minimum refresh interval
 ```
 
@@ -73,6 +73,27 @@ class WarsawSource:
 ```
 
 Add it to `SOURCES` in `aed_import/__init__.py` to expose it on the command line.
+
+## Kraków city list (geocoded)
+
+`uv run python -m aed_import Krakow` reads the city's "Krakowski IMPULS ŻYCIA AED" list on
+[krakow.pl](https://krakow.pl/aed---impuls-zycia/3992,artykul,mapa-aed.html): 4 list pages and one detail page per
+location (name, address, "Liczba AED", placement), about 160 requests at one per second. Run it after `OpenAEDMap`.
+
+- **Positions are geocoded.** The list has no coordinates (its map is a Google embed, which may not be extracted), so
+  each address is looked up in the national address register (PRG) with the
+  [GUGiK geocoder](https://services.gugik.gov.pl/uug/). Only the exact house number on the same street is accepted
+  (PRG uses full names: "Piłsudskiego" is "Marszałka Józefa Piłsudskiego"); without a number, the street's centre.
+  A number PRG doesn't have is not replaced by the street's centre, which can be far off: the record is kept without
+  a site and logged.
+- **A surveyed position always wins.** Sites placed this way get `geocode_method = 'address'` and
+  `position_accuracy_m` (50 for an address point, 250 for a street). A geocoded position never moves a site that
+  another source placed, and a surveyed one (OSM) replaces a geocoded one, whatever `SOURCE_PRIORITY` says.
+- **Matching** uses a 60 m radius (`match_radius_m` on the source) because an address point can be a building's width
+  away from the AED, and the closest pairs match first.
+- AEDs carried in vehicles (Straż Miejska and MPK patrol cars) are kept as records without a site: the address given
+  is the depot. The 15 tram AEDs are mentioned only in the page's text.
+- The list is refreshed a few times a year; one pull per 7 days is allowed.
 
 ## Providers' registers on dane.gov.pl (matching only)
 

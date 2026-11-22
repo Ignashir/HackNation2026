@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 
 POINT = sql.SQL("ST_SetSRID(ST_MakePoint(%s, %s), 4326)::geography")
 VALUE_WHEN_CLEARED = {"is_24_7": False}
+POSITION = ("location", "position_accuracy_m")
 
 
 class ImportRefused(RuntimeError):
@@ -35,7 +36,7 @@ class RunSummary:
 class SourceImporter:
     def __init__(self, conn: psycopg.Connection, source: Source, *,
                  http: PoliteClient | None = None, actor: str | None = None,
-                 batch_size: int = 500, match_radius_m: float = 30.0):
+                 batch_size: int = 500, match_radius_m: float | None = None):
         if not conn.autocommit:
             raise ValueError("SourceImporter needs an autocommit connection; it manages its own transactions")
         self.conn = conn
@@ -43,7 +44,7 @@ class SourceImporter:
         self.http = http or PoliteClient(source.politeness, user_agent())
         self.actor = actor or f"ingest:{source.name.lower()}"
         self.batch_size = batch_size
-        self.match_radius_m = match_radius_m
+        self.match_radius_m = match_radius_m or getattr(source, "match_radius_m", 30.0)
         self.priority = SOURCE_PRIORITY.get(source.name, 0)
         self.source_id, self.redistributable = self._load_source()
 
@@ -64,7 +65,8 @@ class SourceImporter:
             pull = self.source.fetch(self.http)
             summary.fetched = len(pull.records)
             log.info("%s: fetched %d records", self.source.name, summary.fetched)
-            for batch in batched(pull.records, self.batch_size):
+            records = self._closest_first(pull.records) if self.source.geocode_method == "address" else pull.records
+            for batch in batched(records, self.batch_size):
                 self._ingest_batch(batch, summary)
             summary.gone = self._count_gone(summary.run_id)
             summary.status = "partial" if summary.outcomes["failed"] else "success"
@@ -189,6 +191,14 @@ class SourceImporter:
                 return row[0], "exact_id", None
         return None
 
+    def _closest_first(self, records: list[SourceRecord]) -> list[SourceRecord]:
+        """Geocoded positions are imprecise and matching is greedy: let the closest pairs match first, so a record
+        51 m from an AED does not take the one that is 2 m from another record."""
+        def distance(record: SourceRecord) -> float:
+            match = self._nearby_site(record) if record.site else None
+            return match[2] if match else float("inf")
+        return sorted(records, key=distance)
+
     def _nearby_site(self, record: SourceRecord) -> tuple[UUID, str, float] | None:
         """Closest site within the radius that this source does not already describe."""
         if not record.site:
@@ -236,6 +246,7 @@ class SourceImporter:
         cleared = {column: VALUE_WHEN_CLEARED.get(column)
                    for column, (owner_record, _) in owners.items()
                    if owner_record == record_id and column not in offered}
+        self._position_precedence(site_id, record_id, owners, offered, writes, rules, cleared)
 
         changes = writes | cleared
 
@@ -248,6 +259,26 @@ class SourceImporter:
             hours_owner = owners.get("opening_hours_raw", (None, None))[0]
             if hours_owner != record_id or changes["opening_hours_raw"] != hours_before:
                 self._replace_availability(site_id, changes["opening_hours_raw"])
+
+    def _position_precedence(self, site_id: UUID, record_id: UUID, owners: dict, offered: dict,
+                             writes: dict, rules: dict, cleared: dict) -> None:
+        """A surveyed position beats one geocoded from an address, whatever the source priority."""
+        if owners.get("location", (None, None))[0] in (None, record_id):
+            return
+        site_geocoded = self.conn.execute("SELECT geocode_method FROM aed_site WHERE site_id = %s",
+                                          (site_id,)).fetchone()[0] == "address"
+        mine_geocoded = self.source.geocode_method == "address"
+        if mine_geocoded and not site_geocoded:
+            for column in POSITION:
+                writes.pop(column, None)
+                rules.pop(column, None)
+        elif site_geocoded and not mine_geocoded:
+            writes["location"], rules["location"] = offered["location"], "priority"
+            writes["geocode_method"] = self.source.geocode_method   # site metadata, no provenance
+            if "position_accuracy_m" in offered:
+                writes["position_accuracy_m"], rules["position_accuracy_m"] = offered["position_accuracy_m"], "priority"
+            elif "position_accuracy_m" in owners:
+                cleared["position_accuracy_m"] = None
 
     def _update_site(self, site_id: UUID, values: dict[str, object]) -> None:
         if not values:

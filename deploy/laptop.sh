@@ -52,6 +52,9 @@ Running on $ip. Open on any device on this Wi-Fi:
   Converter    https://konwerter.$PUBLIC_DOMAIN
   E-mail       https://mail.$PUBLIC_DOMAIN   (login: TOOLS_USER from .env)
 
+Share all of these as buttons (GitHub Pages, from docs/index.html):
+  https://ignashir.github.io/HackNation2026/?ip=$ip
+
 Stop certificate warnings: install http://ca.$PUBLIC_DOMAIN (see README, "Laptop").
 Keep the Mac awake while presenting: caffeinate -dis
 EOF
