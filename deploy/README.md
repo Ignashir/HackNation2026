@@ -6,6 +6,11 @@ server ([Server](#server)). [Caddy](https://caddyserver.com) is the only contain
 (80 and 443). It handles HTTPS and routes each hostname to a container.
 No domain is needed: `203-0-113-10.sslip.io` and all of its subdomains resolve to `203.0.113.10`.
 
+**Setting it up for the first time?** Follow the step-by-step checklist in
+[SETUP_TODO.md](../SETUP_TODO.md). It goes from installing the tools and getting the code, through
+the configuration, build and data loading, to checking that everything works, with fixes for common
+problems. This README is the reference behind it.
+
 ## URLs
 
 With `PUBLIC_DOMAIN=203-0-113-10.sslip.io`:
