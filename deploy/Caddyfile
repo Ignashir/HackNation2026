@@ -1,0 +1,110 @@
+# The only service with public ports (80/443). Caddy gets a Let's Encrypt certificate
+# for every hostname below, on first request, and routes it to a container by name.
+# PUBLIC_DOMAIN is e.g. 203-0-113-10.sslip.io, which resolves to 203.0.113.10.
+#
+# CADDY_GLOBAL_OPTIONS picks where certificates come from:
+#   empty (server)        Let's Encrypt; the server must be reachable from the internet
+#   local_certs (laptop)  Caddy's own CA; works on a private Wi-Fi address (laptop.sh sets it)
+{
+	{$CADDY_GLOBAL_OPTIONS}
+	# No HTTP/3: it runs over UDP, which Docker Desktop forwards unreliably and venue Wi-Fi often
+	# drops. Browsers that switched to it froze for minutes before falling back to TCP.
+	servers {
+		protocols h1 h2
+	}
+}
+
+# Laptop mode: phones download Caddy's root certificate here (plain HTTP, since they
+# don't trust the HTTPS certificates yet) and install it to stop the warnings.
+http://ca.{$PUBLIC_DOMAIN} {
+	root * /data/caddy/pki/authorities/local
+	rewrite / /root.crt
+	# iOS offers to install the profile only with this type
+	header Content-Type application/x-x509-ca-cert
+	file_server
+}
+
+(tools_login) {
+	basic_auth {
+		{$TOOLS_USER} {$TOOLS_PASSWORD_HASH}
+	}
+}
+
+# --- Open data portal (backend_latest + frontend_latest) ---------------------------
+
+# The Angular app calls /api/... and /cms/... on its own origin (ng serve proxies these
+# in development), so strip the prefix and send them to the API and the CMS.
+{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	handle_path /api/* {
+		reverse_proxy mcod-api:8000
+	}
+	handle_path /cms/* {
+		reverse_proxy mcod-cms:8001
+	}
+	# Frontend, /static, /media, websockets: the backend's own nginx rules.
+	handle {
+		reverse_proxy mcod-nginx:80
+	}
+}
+
+api.{$PUBLIC_DOMAIN}, admin.{$PUBLIC_DOMAIN}, cms.{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	reverse_proxy mcod-nginx:80
+}
+
+# Optional: start it with `--profile forum`; returns 502 otherwise.
+forum.{$PUBLIC_DOMAIN} {
+	reverse_proxy mcod-discourse:3000 {
+		# The portal embeds the forum in an iframe.
+		header_down -X-Frame-Options
+	}
+}
+
+# --- AED map (solution/app) ---------------------------------------------------------
+
+aed.{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy aed-api:3001
+	}
+	handle {
+		reverse_proxy aed-web:80
+	}
+}
+
+# Phone entry point: same app, but "/" opens the mobile finder instead of the map.
+m.{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	handle /api/* {
+		reverse_proxy aed-api:3001
+	}
+	handle {
+		rewrite / /mobile.html
+		reverse_proxy aed-web:80
+	}
+}
+
+# --- AED data converter (solution/konwerter) ----------------------------------------
+
+# One self-contained page that runs entirely in the browser (no data leaves the device).
+# index.html is built by `node solution/konwerter/build.mjs`; only it is served.
+konwerter.{$PUBLIC_DOMAIN} {
+	encode zstd gzip
+	root * /srv/konwerter
+	@not_page not path / /index.html
+	respond @not_page 404
+	file_server
+}
+
+# --- Team tools (password-protected) ------------------------------------------------
+
+mail.{$PUBLIC_DOMAIN} {
+	import tools_login
+	reverse_proxy mcod-smtp:8025
+}
+
+flower.{$PUBLIC_DOMAIN} {
+	import tools_login
+	reverse_proxy mcod-flower:8888
+}

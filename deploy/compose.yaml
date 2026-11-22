@@ -1,0 +1,345 @@
+# Everything on one server behind Caddy. Only Caddy publishes ports (80, 443); every
+# other service is reachable only on the internal Docker network, by service name.
+#
+#   cd deploy && cp .env.example .env   # set PUBLIC_DOMAIN etc.
+#   docker compose up -d --build
+#
+# See README.md for the first-run steps and the list of URLs.
+
+name: hacknation
+
+x-mcod-app: &mcod-app
+  image: mcod-app:deploy
+  platform: linux/amd64
+  build:
+    context: ../backend_latest
+    dockerfile: docker/app/Dockerfile
+  restart: unless-stopped
+  depends_on:
+    - mcod-db
+    - mcod-rabbitmq
+    - mcod-redis
+    - mcod-elasticsearch
+    - mcod-rdfdb
+    - mcod-smtp
+  env_file:
+    - path: ../backend_latest/.env
+      required: true
+  environment: &mcod-app-env
+    # base.py reads DEBUG, the URLs and the cookie domain below from the environment;
+    # local.py (the dev default) would hard-code them to mcod.local.
+    DJANGO_SETTINGS_MODULE: mcod.settings.base
+    ENVIRONMENT: local
+    DEBUG: "no"
+    PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?set PUBLIC_DOMAIN in deploy/.env}
+    # services, by name on the Docker network
+    POSTGRES_HOST: mcod-db
+    POSTGRES_HOST_TYPE: docker
+    REDIS_URL: redis://mcod-redis:6379
+    ELASTICSEARCH_HOSTS: mcod-elasticsearch:9200
+    RABBITMQ_HOST: mcod-rabbitmq:5672
+    FUSEKI_URL: http://mcod-rdfdb:3030
+    EMAIL_HOST: mcod-smtp
+    EMAIL_PORT: 1025
+    EMAIL_USE_TLS: 0
+    EMAIL_USE_SSL: 0
+    # public URLs (used in links, redirects and e-mails)
+    BASE_URL: https://${PUBLIC_DOMAIN}
+    API_URL: https://api.${PUBLIC_DOMAIN}
+    API_URL_INTERNAL: http://mcod-api:8000
+    ADMIN_URL: https://admin.${PUBLIC_DOMAIN}
+    CMS_URL: https://cms.${PUBLIC_DOMAIN}
+    DISCOURSE_HOST: https://forum.${PUBLIC_DOMAIN}
+    DISCOURSE_FORUM_ENABLED: ${DISCOURSE_FORUM_ENABLED:-false}
+    ALLOWED_HOSTS: "*"
+    SESSION_COOKIE_DOMAIN: ${PUBLIC_DOMAIN}
+    API_CSRF_COOKIE_DOMAINS: ${PUBLIC_DOMAIN}
+    # gunicorn processes per component; the scripts' defaults (5) are too many for a laptop
+    WEB_CONCURRENCY: ${WEB_CONCURRENCY:-2}
+    API_WORKERS: ${API_WORKERS:-2}
+  # The image holds only dependencies; the code comes from the checkout.
+  volumes:
+    - ../backend_latest/data:/usr/src/mcod_backend/data
+    - ../backend_latest/database:/usr/src/mcod_backend/database
+    - ../backend_latest/manage.py:/usr/src/mcod_backend/manage.py
+    - ../backend_latest/mcod:/usr/src/mcod_backend/mcod
+    - ../backend_latest/media:/usr/src/mcod_backend/media
+    - ../backend_latest/statics:/usr/src/mcod_backend/statics
+    - ../backend_latest/translations:/usr/src/mcod_backend/translations
+  mem_limit: 2g
+
+services:
+  # --- Entry point ----------------------------------------------------------------
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN:?set PUBLIC_DOMAIN in deploy/.env}
+      TOOLS_USER: ${TOOLS_USER:-team}
+      TOOLS_PASSWORD_HASH: ${TOOLS_PASSWORD_HASH:?set TOOLS_PASSWORD_HASH in deploy/.env}
+      # "local_certs" on a laptop (laptop.sh sets it); empty = Let's Encrypt
+      CADDY_GLOBAL_OPTIONS: ${CADDY_GLOBAL_OPTIONS:-}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # AED data converter, a static page served by Caddy itself (konwerter.<domain>).
+      # The folder, not the file, so a rebuilt index.html shows up without a restart.
+      - ../solution/konwerter:/srv/konwerter:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - mcod-nginx
+      - aed-web
+      - aed-api
+
+  # --- Open data portal: web tier --------------------------------------------------
+
+  # The backend's own nginx rules (static files, media, protected downloads, websockets),
+  # rendered for plain HTTP behind Caddy by nginx/render-templates.sh.
+  mcod-nginx:
+    image: nginx:1.31.6
+    restart: unless-stopped
+    environment:
+      PUBLIC_DOMAIN: ${PUBLIC_DOMAIN}
+      MCOD_NGINX_FRONTEND: http://mcod-frontend:80
+      MCOD_NGINX_API: http://mcod-api:8000
+      MCOD_NGINX_ADMIN: http://mcod-admin:8001
+      MCOD_NGINX_PN_APPS: http://mcod-admin:8001
+      MCOD_NGINX_CMS: http://mcod-cms:8001
+      MCOD_NGINX_WS: http://mcod-ws:8001
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ../backend_latest/statics:/usr/share/nginx/html/statics:ro
+      - ../backend_latest/media:/usr/share/nginx/html/media:ro
+    depends_on:
+      - mcod-frontend
+      - mcod-api
+      - mcod-admin
+      - mcod-cms
+      - mcod-ws
+
+  mcod-frontend:
+    build:
+      context: ../frontend_latest
+      target: serve-static
+      args:
+        MCOD_BUILD_CONFIGURATION_ENV: int
+    restart: unless-stopped
+    volumes:
+      - ./frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+  # --- Open data portal: application tier -----------------------------------------
+
+  mcod-api:
+    <<: *mcod-app
+    command: start-api # runs migrations, then gunicorn on :8000
+    environment:
+      <<: *mcod-app-env
+      COMPONENT: api
+
+  mcod-admin:
+    <<: *mcod-app
+    command: start-django # gunicorn on :8001
+    environment:
+      <<: *mcod-app-env
+      COMPONENT: admin
+
+  mcod-cms:
+    <<: *mcod-app
+    command: start-django
+    environment:
+      <<: *mcod-app-env
+      COMPONENT: cms
+
+  mcod-ws:
+    <<: *mcod-app
+    command: start-django # hypercorn on :8001
+    environment:
+      <<: *mcod-app-env
+      COMPONENT: ws
+
+  mcod-celery:
+    <<: *mcod-app
+    command: start-celery
+    environment:
+      <<: *mcod-app-env
+      COMPONENT: celery
+
+  # --- Open data portal: data tier (internal only) --------------------------------
+
+  mcod-db:
+    build:
+      context: ../backend_latest
+      dockerfile: docker/postgres/Dockerfile
+    restart: unless-stopped
+    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    env_file:
+      - path: ../backend_latest/.env
+        required: true
+    volumes:
+      - postgres_vol_17:/var/lib/postgresql/data
+
+  mcod-rabbitmq:
+    hostname: mcod-rabbitmq
+    build:
+      context: ../backend_latest
+      dockerfile: docker/rabbitmq/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - rabbitmq_vol:/var/lib/rabbitmq
+
+  mcod-redis:
+    build:
+      context: ../backend_latest
+      dockerfile: docker/redis/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - redis_vol:/data
+
+  mcod-elasticsearch:
+    platform: linux/amd64 # 6.8 has no arm64 image; Apple Silicon runs it emulated
+    build:
+      context: ../backend_latest
+      dockerfile: docker/elasticsearch/Dockerfile
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - node.name=mcod-elasticsearch
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1024m -Xmx1024m
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - elastic_vol:/usr/share/elasticsearch/data
+
+  mcod-rdfdb:
+    build:
+      context: ../backend_latest
+      dockerfile: docker/rdfdb/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - path: ../backend_latest/.env
+        required: true
+    volumes:
+      - fuseki_vol_6:/var/lib/fuseki
+
+  # Catches all outgoing e-mail; read it at https://mail.<domain>.
+  mcod-smtp:
+    image: mailhog/mailhog
+    user: root
+    restart: unless-stopped
+
+  mcod-flower:
+    image: mher/flower
+    restart: unless-stopped
+    environment:
+      - CELERY_BROKER_URL=amqp://mcod-rabbitmq:5672
+      - FLOWER_PORT=8888
+    depends_on:
+      - mcod-rabbitmq
+
+  # --- Optional forum: docker compose --profile forum up -d -----------------------
+  # The image is on registry.dane.gov.pl; it may need a login there.
+
+  mcod-discourse: &discourse
+    image: registry.dane.gov.pl/mcod/backend/discourse:2-debian-10-mcod-1
+    profiles: [forum]
+    restart: unless-stopped
+    depends_on:
+      - mcod-db
+      - mcod-redis
+    volumes:
+      - discourse_vol:/bitnami
+    environment: &discourse-env
+      POSTGRESQL_HOST: mcod-db
+      POSTGRESQL_ROOT_USER: ${POSTGRES_USER:-mcod}
+      POSTGRESQL_ROOT_PASSWORD: ${POSTGRES_PASSWORD:-mcod}
+      POSTGRESQL_CLIENT_CREATE_DATABASE_NAME: forum
+      POSTGRESQL_CLIENT_CREATE_DATABASE_USERNAME: ${POSTGRES_USER:-mcod}
+      POSTGRESQL_CLIENT_CREATE_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-mcod}
+      DISCOURSE_POSTGRESQL_NAME: forum
+      DISCOURSE_POSTGRESQL_USERNAME: ${POSTGRES_USER:-mcod}
+      DISCOURSE_POSTGRESQL_PASSWORD: ${POSTGRES_PASSWORD:-mcod}
+      DISCOURSE_HOSTNAME: forum.${PUBLIC_DOMAIN}
+      REDIS_HOST: mcod-redis
+      DISCOURSE_USERNAME: ${DISCOURSE_USERNAME:-admin}
+      DISCOURSE_PASSWORD: ${DISCOURSE_PASSWORD:-}
+
+  mcod-discourse-sidekiq:
+    <<: *discourse
+    environment:
+      <<: *discourse-env
+      DISCOURSE_PORT: "3000"
+
+  # --- AED map (solution/app) -----------------------------------------------------
+
+  aed-db:
+    image: postgis/postgis:16-3.4 # same as solution/compose.yaml, so its data volume can be reused
+    platform: linux/amd64
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aed
+      POSTGRES_USER: aed
+      POSTGRES_PASSWORD: ${AED_DB_PASSWORD:-aed}
+    # Host-local only, so solution/pull_all.sh can run on the server unchanged.
+    ports:
+      - "127.0.0.1:${AED_DB_HOST_PORT:-54329}:5432"
+    volumes:
+      - ../solution/sql:/sql:ro
+      - ../solution/app/db/initdb.sh:/docker-entrypoint-initdb.d/20_aed.sh:ro
+      - aed_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aed -d aed"]
+      interval: 5s
+      retries: 30
+
+  aed-api:
+    build:
+      context: ../solution/app
+      target: api
+    restart: unless-stopped
+    environment:
+      PGHOST: aed-db
+      PGPORT: 5432
+      PGUSER: aed
+      PGPASSWORD: ${AED_DB_PASSWORD:-aed}
+      PGDATABASE: aed
+      WEB_URL: https://aed.${PUBLIC_DOMAIN}
+    volumes:
+      - aed_uploads:/app/server/uploads
+    depends_on:
+      aed-db:
+        condition: service_healthy
+
+  aed-web:
+    build:
+      context: ../solution/app
+      target: web
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  # PORTAL_VOLUMES=backend_latest and AED_DB_VOLUME=solution_aed-data reuse the dev
+  # stacks' data (laptop). Only one stack may run at a time when they share volumes.
+  postgres_vol_17:
+    name: ${PORTAL_VOLUMES:-hacknation}_postgres_vol_17
+  rabbitmq_vol:
+    name: ${PORTAL_VOLUMES:-hacknation}_rabbitmq_vol
+  elastic_vol:
+    name: ${PORTAL_VOLUMES:-hacknation}_elastic_vol
+  redis_vol:
+    name: ${PORTAL_VOLUMES:-hacknation}_redis_vol
+  fuseki_vol_6:
+    name: ${PORTAL_VOLUMES:-hacknation}_fuseki_vol_6
+  discourse_vol:
+    name: ${PORTAL_VOLUMES:-hacknation}_discourse_vol
+  aed_db_data:
+    name: ${AED_DB_VOLUME:-hacknation_aed_db_data}
+  aed_uploads:
