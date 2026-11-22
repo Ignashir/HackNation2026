@@ -50,7 +50,18 @@ SELECT coalesce(d.device_id, s.site_id)::text                    AS aed_id,
        s.last_verified_at                                          AS last_verified,
        op.name                                                     AS operator,
        NULL::text AS contact_phone,
-       NULL::text AS notes
+       NULL::text AS notes,
+       -- same device elsewhere: its OSM node, and the providers' own records linked to this site by our matching
+       (SELECT string_agg(ref, ';' ORDER BY ref) FROM (
+            SELECT 'osm:' || sr.external_id AS ref
+            FROM source_record sr JOIN data_source ds ON ds.source_id = sr.source_id
+            WHERE sr.site_id = s.site_id AND ds.name IN ('OSM', 'OpenAEDMap')
+              AND sr.external_id ~ '^(node|way|relation)/[0-9]+$'
+            UNION
+            SELECT sr.external_id
+            FROM source_record sr JOIN data_source ds ON ds.source_id = sr.source_id
+            WHERE sr.site_id = s.site_id AND ds.name = 'DaneGovPl'
+       ) refs)                                                     AS same_as
 FROM aed_site s
 JOIN eligible e ON e.site_id = s.site_id
 LEFT JOIN address a        ON a.address_id = s.address_id

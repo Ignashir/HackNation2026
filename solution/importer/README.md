@@ -74,10 +74,18 @@ class WarsawSource:
 
 Add it to `SOURCES` in `aed_import/__init__.py` to expose it on the command line.
 
+## Providers' registers on dane.gov.pl (matching only)
+
+`uv run python -m aed_import DaneGovPl` finds the AED datasets on dane.gov.pl, reads each provider's CSV (columns
+mapped by the AED standard; mis-quoted rows unwrapped, swapped coordinates put right) and **links** the records to our
+sites (nearest within 30 m, name similarity). The source is not redistributable: we never republish those records,
+because the providers publish them themselves. The links become `same_as` in our export.
+
 ## Export in the AED standard
 
 Writes the database as a CSV in the [AED register standard](../standard/aed/) (one row per device, or per site when
-no device is known; `aed_id` is the stable UUID from our database):
+no device is known; `aed_id` is the stable UUID from our database; `same_as` lists the site's OSM node and the
+providers' records linked to it, so the national list merges them instead of listing an AED twice):
 
 ```sh
 uv run python -m aed_import.export_standard --out aed_standard.csv
