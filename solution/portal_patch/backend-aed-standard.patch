@@ -2470,7 +2470,7 @@ index 1c2468c..3ba0668 100644
      ("/resources/{id:int}/incr_download_count", res_views.ResourceDownloadCounter()),
      (
 diff --git a/mcod/settings/base.py b/mcod/settings/base.py
-index a88e90b..514f054 100644
+index a88e90b..b24988d 100644
 --- a/mcod/settings/base.py
 +++ b/mcod/settings/base.py
 @@ -137,6 +137,7 @@ INSTALLED_APPS = [
@@ -2489,6 +2489,24 @@ index a88e90b..514f054 100644
  }
  
  HARVESTER_IMPORTERS = {
+@@ -614,6 +616,17 @@ SUIT_CONFIG = {
+             "icon": "icon-bullhorn",
+             "orig_url": "/harvester/datasource/",
+         },
++        {
++            "label": "Standardy danych",
++            "app": "standards",
++            "models": [
++                {"model": "standards.datastandard", "label": "Standardy danych"},
++                {"model": "standards.standardaggregate", "label": "Wykazy krajowe"},
++                {"model": "standards.resourceconformity", "label": "Zgodność plików ze standardem"},
++            ],
++            "permissions": "auth.add_user",
++            "icon": "icon-check",
++        },
+         {
+             "label": pgettext_lazy("Dashboard", "Dashboard"),
+             "url": "",
 diff --git a/mcod/standards/__init__.py b/mcod/standards/__init__.py
 new file mode 100644
 index 0000000..0b806f1
