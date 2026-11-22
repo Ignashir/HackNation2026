@@ -1,0 +1,66 @@
+.aed-register {
+  padding-top: 24px;
+  padding-bottom: 48px;
+}
+
+.lead {
+  max-width: 820px;
+}
+
+.aed-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 12px;
+
+  li {
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
+    padding: 12px 16px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  strong {
+    font-size: 1.5rem;
+  }
+}
+
+.aed-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 28px;
+}
+
+.aed-providers .num {
+  text-align: right;
+}
+
+.aed-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 28px;
+  border-bottom: 2px solid #0052a5;
+
+  button {
+    border: 0;
+    background: transparent;
+    padding: 10px 20px;
+    font-weight: 600;
+    color: #0052a5;
+    text-decoration: underline;
+
+    &.active {
+      background: #0052a5;
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+}
+
+.aed-view {
+  padding-top: 16px;
+}

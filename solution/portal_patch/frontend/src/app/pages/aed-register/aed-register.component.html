@@ -1,0 +1,90 @@
+<section class="aed-register container">
+  <h1 class="heading">Krajowy wykaz AED</h1>
+  <p class="lead">
+    Jedna lista defibrylatorów AED z całej Polski. Każdy dostawca (urząd, szpital, firma) publikuje w portalu własny
+    rejestr AED w standardzie danych AED i odpowiada za jego poprawność. Portal codziennie łączy wszystkie zgodne ze
+    standardem rejestry w ten wykaz. Rekordy różnych dostawców opisujące to samo urządzenie są łączone tylko na
+    podstawie jawnych powiązań (same_as) lub numeru seryjnego; wartości pochodzą od dostawcy o najwyższym priorytecie,
+    a każde urządzenie wskazuje wszystkie swoje źródła.
+  </p>
+
+  <p *ngIf="error" class="alert alert-warning">Wykaz nie jest jeszcze dostępny.</p>
+
+  <ng-container *ngIf="aggregate">
+    <ul class="aed-stats" aria-label="Podsumowanie wykazu">
+      <li><strong>{{ fmt(aggregate.rows) }}</strong><span>urządzeń (z {{ fmt(aggregate.source_rows) }} rekordów dostawców)</span></li>
+      <li><strong>{{ aggregate.providers.length }}</strong><span>rejestrów dostawców</span></li>
+      <li>
+        <strong>{{ fmt(aggregate.merged_devices) }}</strong>
+        <span>urządzeń opisanych przez kilku dostawców (połączone)</span>
+      </li>
+      <li>
+        <strong>{{ fmt(aggregate.possible_duplicates) }} / {{ fmt(aggregate.conflicts) }}</strong>
+        <span>możliwe duplikaty do sprawdzenia / rozbieżności</span>
+      </li>
+      <li>
+        <strong>+{{ aggregate.added }} / ~{{ aggregate.changed }} / −{{ aggregate.removed }}</strong>
+        <span>dodane / zmienione / usunięte od poprzedniej wersji</span>
+      </li>
+      <li><strong>{{ aggregate.built_at | date: 'd.MM.yyyy HH:mm' }}</strong><span>ostatnia aktualizacja</span></li>
+    </ul>
+
+    <p class="aed-meta">
+      Standard danych: <strong>{{ aggregate.title }} {{ aggregate.version }}</strong> · Wykaz publikuje:
+      <a [routerLink]="datasetUrl(aggregate.dataset_id)">{{ aggregate.owner }}</a>
+    </p>
+
+    <div class="aed-actions">
+      <a class="btn btn-primary" [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.resource_id)">Pobierz wykaz (CSV)</a>
+      <a
+        *ngIf="aggregate.changes_resource_id"
+        class="btn btn-outline-primary"
+        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.changes_resource_id)"
+        >Zmiany od poprzedniej wersji</a
+      >
+      <a
+        *ngIf="aggregate.full_resource_id"
+        class="btn btn-outline-primary"
+        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.full_resource_id)"
+        >Wszystkie rekordy dostawców</a
+      >
+      <a
+        *ngIf="aggregate.conflicts_resource_id"
+        class="btn btn-outline-primary"
+        [routerLink]="resourceUrl(aggregate.dataset_id, aggregate.conflicts_resource_id)"
+        >Rozbieżności</a
+      >
+      <a class="btn btn-outline-primary" [href]="apiUrl" target="_blank" rel="noopener">API (JSON)</a>
+    </div>
+
+    <h2 class="heading heading--sm">Dostawcy danych</h2>
+    <table class="table aed-providers">
+      <thead>
+        <tr><th scope="col">Dostawca</th><th scope="col" class="num">Rekordy</th><th scope="col" class="num">Priorytet</th><th scope="col">Rejestr</th></tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of aggregate.providers">
+          <td>{{ p.provider }}</td>
+          <td class="num">{{ fmt(p.rows) }}</td>
+          <td class="num">{{ p.precedence }}</td>
+          <td><a [routerLink]="resourceUrl(p.dataset_id, p.resource_id)">zbiór {{ p.dataset_id }}</a></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="aed-tabs" role="tablist" aria-label="Widok wykazu">
+      <button type="button" role="tab" [attr.aria-selected]="view === 'map'" [class.active]="view === 'map'" (click)="view = 'map'">
+        Mapa
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="view === 'table'" [class.active]="view === 'table'" (click)="view = 'table'">
+        Tabela
+      </button>
+    </div>
+    <div class="aed-view" *ngIf="view === 'map'">
+      <app-map *appShellNoRender [resourceId]="'' + aggregate.resource_id"></app-map>
+    </div>
+    <div class="aed-view" *ngIf="view === 'table'">
+      <app-resource-table-no-filters [resourceId]="'' + aggregate.resource_id" tableTitle="Krajowy wykaz AED"></app-resource-table-no-filters>
+    </div>
+  </ng-container>
+</section>

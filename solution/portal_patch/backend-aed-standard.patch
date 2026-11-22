@@ -1,9 +1,9 @@
 diff --git a/data/standards/aed/1.0/schema.json b/data/standards/aed/1.0/schema.json
 new file mode 100644
-index 0000000..76966f2
+index 0000000..b4a0132
 --- /dev/null
 +++ b/data/standards/aed/1.0/schema.json
-@@ -0,0 +1,403 @@
+@@ -0,0 +1,838 @@
 +{
 +  "$comment": "AED register standard v1.0. Frictionless Table Schema (validated by tableschema/goodtables, as used by dane.gov.pl) plus x-aed annotations used for mapping suggestions and documentation. One row = one AED device.",
 +  "x-standard": {
@@ -11,401 +11,836 @@ index 0000000..76966f2
 +    "version": "1.0",
 +    "title_pl": "Rejestr AED – standard danych",
 +    "title_en": "AED register – data standard",
++    "aggregate_title_pl": "Krajowy wykaz AED",
++    "aggregate_title_en": "National AED list",
 +    "description_pl": "Lokalizacje i atrybuty automatycznych defibrylatorów zewnętrznych (AED). Jeden wiersz to jedno urządzenie. Dostawca danych odpowiada za ich aktualność i poprawność.",
 +    "description_en": "Locations and attributes of automated external defibrillators (AED). One row is one device. The data provider is accountable for keeping it current and correct.",
 +    "crs": "EPSG:4326",
-+    "portal_geo": { "l": "lon", "b": "lat", "label": "name" },
++    "portal_geo": {
++      "l": "lon",
++      "b": "lat",
++      "label": "name"
++    },
 +    "composite_inputs": {
 +      "point": {
-+        "produces": ["lat", "lon"],
++        "produces": [
++          "lat",
++          "lon"
++        ],
 +        "description_pl": "Jedna kolumna z punktem: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, wariant {\"lat\":..,\"long\":..} lub tekst \"lat, lon\".",
 +        "description_en": "One column holding a point: GeoJSON {\"type\":\"Point\",\"coordinates\":[lon,lat]}, the {\"lat\":..,\"long\":..} variant, or the text \"lat, lon\".",
-+        "synonyms": ["geometry", "geometria", "geom", "point", "punkt", "location_point", "wspolrzedne", "współrzędne", "coordinates"]
++        "synonyms": [
++          "geometry",
++          "geometria",
++          "geom",
++          "point",
++          "punkt",
++          "location_point",
++          "wspolrzedne",
++          "współrzędne",
++          "coordinates"
++        ]
 +      }
++    },
++    "merge": {
++      "description_pl": "Zasady łączenia rekordów w Krajowym wykazie AED: łączone są tylko rekordy powiązane jawnie (same_as) lub o tym samym identyfikatorze urządzenia (udi_di + serial_number albo producent + model + serial_number). Bliskość położenia tylko oznacza możliwy duplikat. Wartości pól pochodzą od dostawcy o najwyższym priorytecie, przy równym priorytecie – od rekordu z nowszą datą last_verified; puste wartości nie nadpisują wypełnionych. Rozbieżności w polach krytycznych trafiają do pliku konfliktów.",
++      "precedence_by_institution_type": {
++        "local": 30,
++        "state": 30,
++        "private": 20,
++        "developer": 20,
++        "other": 10
++      },
++      "default_precedence": 10,
++      "flag_distance_m": 50,
++      "conflict_fields": [
++        "opening_hours",
++        "is_24_7",
++        "access",
++        "status",
++        "indoor",
++        "floor",
++        "unlock_method"
++      ],
++      "conflict_distance_m": 25
 +    }
 +  },
 +  "fields": [
 +    {
 +      "name": "aed_id",
 +      "type": "string",
-+      "constraints": { "required": true, "unique": true, "pattern": "[A-Za-z0-9._:/-]{1,64}" },
++      "constraints": {
++        "required": true,
++        "unique": true,
++        "pattern": "[A-Za-z0-9._:/-]{1,64}"
++      },
 +      "x-aed": {
-+        "group": "identity", "level": "required",
-+        "label_pl": "Identyfikator AED", "label_en": "AED identifier",
++        "group": "identity",
++        "level": "required",
++        "label_pl": "Identyfikator AED",
++        "label_en": "AED identifier",
 +        "description_pl": "Stały identyfikator urządzenia w rejestrze dostawcy. Nie zmienia się przy aktualizacjach pliku – na jego podstawie wykrywane są zmiany.",
 +        "description_en": "Stable identifier of the device within the provider's register. It must not change between file updates; changes are detected by it.",
 +        "example": "KRO-0001",
-+        "synonyms": ["id", "aed_id", "numer id", "nr", "lp", "identyfikator", "id aed", "defibrillator_id", "id_defibrylatora", "kod"]
++        "synonyms": [
++          "id",
++          "aed_id",
++          "numer id",
++          "nr",
++          "lp",
++          "identyfikator",
++          "id aed",
++          "defibrillator_id",
++          "id_defibrylatora",
++          "kod"
++        ]
 +      }
 +    },
 +    {
 +      "name": "lat",
 +      "type": "number",
-+      "constraints": { "required": true, "minimum": 49.0, "maximum": 54.9 },
++      "constraints": {
++        "required": true,
++        "minimum": 49.0,
++        "maximum": 54.9
++      },
 +      "x-aed": {
-+        "group": "location", "level": "required", "detect": "lat_pl",
-+        "label_pl": "Szerokość geograficzna", "label_en": "Latitude",
++        "group": "location",
++        "level": "required",
++        "detect": "lat_pl",
++        "label_pl": "Szerokość geograficzna",
++        "label_en": "Latitude",
 +        "description_pl": "Szerokość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 49,0 a 54,9.",
 +        "description_en": "Latitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 49.0 and 54.9.",
 +        "example": "49.718809",
-+        "synonyms": ["lat", "latitude", "szerokość geograficzna", "szerokosc geograficzna", "szerokość", "szerokosc", "y", "wsp_y", "phi"]
++        "synonyms": [
++          "lat",
++          "latitude",
++          "szerokość geograficzna",
++          "szerokosc geograficzna",
++          "szerokość",
++          "szerokosc",
++          "y",
++          "wsp_y",
++          "phi"
++        ]
 +      }
 +    },
 +    {
 +      "name": "lon",
 +      "type": "number",
-+      "constraints": { "required": true, "minimum": 14.1, "maximum": 24.2 },
++      "constraints": {
++        "required": true,
++        "minimum": 14.1,
++        "maximum": 24.2
++      },
 +      "x-aed": {
-+        "group": "location", "level": "required", "detect": "lon_pl",
-+        "label_pl": "Długość geograficzna", "label_en": "Longitude",
++        "group": "location",
++        "level": "required",
++        "detect": "lon_pl",
++        "label_pl": "Długość geograficzna",
++        "label_en": "Longitude",
 +        "description_pl": "Długość geograficzna w układzie WGS84 (stopnie dziesiętne, kropka jako separator). Dla Polski między 14,1 a 24,2.",
 +        "description_en": "Longitude in WGS84 (decimal degrees, dot as decimal separator). For Poland between 14.1 and 24.2.",
 +        "example": "21.720344",
-+        "synonyms": ["lon", "lng", "long", "longitude", "długość geograficzna", "dlugosc geograficzna", "długość", "dlugosc", "x", "wsp_x", "lambda"]
++        "synonyms": [
++          "lon",
++          "lng",
++          "long",
++          "longitude",
++          "długość geograficzna",
++          "dlugosc geograficzna",
++          "długość",
++          "dlugosc",
++          "x",
++          "wsp_x",
++          "lambda"
++        ]
 +      }
 +    },
 +    {
 +      "name": "name",
 +      "type": "string",
-+      "constraints": { "required": true, "minLength": 2, "maxLength": 200 },
++      "constraints": {
++        "required": true,
++        "minLength": 2,
++        "maxLength": 200
++      },
 +      "x-aed": {
-+        "group": "location", "level": "required",
-+        "label_pl": "Nazwa miejsca", "label_en": "Site name",
++        "group": "location",
++        "level": "required",
++        "label_pl": "Nazwa miejsca",
++        "label_en": "Site name",
 +        "description_pl": "Nazwa obiektu, w którym znajduje się AED (np. szkoła, urząd, pływalnia). Wyświetlana jako etykieta na mapie. Nie wpisuj samego słowa „Defibrylator”.",
 +        "description_en": "Name of the place where the AED is (e.g. school, town hall, swimming pool). Shown as the map label. Do not use just the word \"Defibrillator\".",
 +        "example": "Zespół Krytych Pływalni",
-+        "synonyms": ["name", "nazwa", "nazwa obiektu", "obiekt", "lokalizacja", "miejsce", "location_object_name", "nazwa miejsca", "site", "site_name"]
++        "synonyms": [
++          "name",
++          "nazwa",
++          "nazwa obiektu",
++          "obiekt",
++          "lokalizacja",
++          "miejsce",
++          "location_object_name",
++          "nazwa miejsca",
++          "site",
++          "site_name"
++        ]
 +      }
 +    },
 +    {
 +      "name": "address",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "address", "level": "recommended",
-+        "label_pl": "Adres (pełny)", "label_en": "Address (full)",
++        "group": "address",
++        "level": "recommended",
++        "label_pl": "Adres (pełny)",
++        "label_en": "Address (full)",
 +        "description_pl": "Pełny adres w jednym polu, jeśli nie jest rozbity na części.",
 +        "description_en": "Full address in one field, if it is not split into parts.",
 +        "example": "ul. Jasna 1, 38-400 Krosno",
-+        "synonyms": ["adres", "address", "adres obiektu", "full_address", "adres pełny"]
++        "synonyms": [
++          "adres",
++          "address",
++          "adres obiektu",
++          "full_address",
++          "adres pełny"
++        ]
 +      }
 +    },
 +    {
 +      "name": "street",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "address", "level": "optional",
-+        "label_pl": "Ulica", "label_en": "Street",
++        "group": "address",
++        "level": "optional",
++        "label_pl": "Ulica",
++        "label_en": "Street",
 +        "description_pl": "Nazwa ulicy z przedrostkiem (ul., al., pl.).",
 +        "description_en": "Street name with its prefix (ul., al., pl.).",
 +        "example": "ul. Jasna",
-+        "synonyms": ["ulica", "street", "ul", "nazwa ulicy"]
++        "synonyms": [
++          "ulica",
++          "street",
++          "ul",
++          "nazwa ulicy"
++        ]
 +      }
 +    },
 +    {
 +      "name": "house_number",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "address", "level": "optional",
-+        "label_pl": "Numer budynku", "label_en": "House number",
++        "group": "address",
++        "level": "optional",
++        "label_pl": "Numer budynku",
++        "label_en": "House number",
 +        "description_pl": "Numer budynku, może zawierać literę (np. 5A).",
 +        "description_en": "Building number, may contain a letter (e.g. 5A).",
 +        "example": "5A",
-+        "synonyms": ["numer domu", "nr domu", "numer budynku", "home_number", "house_number", "nr budynku", "numer"]
++        "synonyms": [
++          "numer domu",
++          "nr domu",
++          "numer budynku",
++          "home_number",
++          "house_number",
++          "nr budynku",
++          "numer"
++        ]
 +      }
 +    },
 +    {
 +      "name": "postcode",
 +      "type": "string",
-+      "constraints": { "pattern": "[0-9]{2}-[0-9]{3}" },
++      "constraints": {
++        "pattern": "[0-9]{2}-[0-9]{3}"
++      },
 +      "x-aed": {
-+        "group": "address", "level": "recommended", "detect": "postcode_pl",
-+        "label_pl": "Kod pocztowy", "label_en": "Postcode",
++        "group": "address",
++        "level": "recommended",
++        "detect": "postcode_pl",
++        "label_pl": "Kod pocztowy",
++        "label_en": "Postcode",
 +        "description_pl": "Kod pocztowy w formacie NN-NNN.",
 +        "description_en": "Postcode in the NN-NNN format.",
 +        "example": "38-400",
-+        "synonyms": ["kod pocztowy", "kod", "postcode", "postal_code", "zip", "pna"]
++        "synonyms": [
++          "kod pocztowy",
++          "kod",
++          "postcode",
++          "postal_code",
++          "zip",
++          "pna"
++        ]
 +      }
 +    },
 +    {
 +      "name": "city",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "address", "level": "recommended",
-+        "label_pl": "Miejscowość", "label_en": "City / locality",
++        "group": "address",
++        "level": "recommended",
++        "label_pl": "Miejscowość",
++        "label_en": "City / locality",
 +        "description_pl": "Nazwa miejscowości.",
 +        "description_en": "Name of the city or locality.",
 +        "example": "Krosno",
-+        "synonyms": ["miejscowość", "miejscowosc", "miasto", "city", "town", "locality", "gmina"]
++        "synonyms": [
++          "miejscowość",
++          "miejscowosc",
++          "miasto",
++          "city",
++          "town",
++          "locality",
++          "gmina"
++        ]
 +      }
 +    },
 +    {
 +      "name": "teryt",
 +      "type": "string",
-+      "constraints": { "pattern": "[0-9]{7}" },
++      "constraints": {
++        "pattern": "[0-9]{7}"
++      },
 +      "x-aed": {
-+        "group": "address", "level": "optional",
-+        "label_pl": "Kod TERYT gminy (TERC)", "label_en": "Commune TERYT code (TERC)",
++        "group": "address",
++        "level": "optional",
++        "label_pl": "Kod TERYT gminy (TERC)",
++        "label_en": "Commune TERYT code (TERC)",
 +        "description_pl": "7-cyfrowy kod gminy z rejestru TERYT (TERC), np. 1861011 (Krosno).",
 +        "description_en": "7-digit commune code from the TERYT register (TERC), e.g. 1861011 (Krosno).",
 +        "example": "1861011",
-+        "synonyms": ["teryt", "terc", "kod teryt", "kod gminy"]
++        "synonyms": [
++          "teryt",
++          "terc",
++          "kod teryt",
++          "kod gminy"
++        ]
 +      }
 +    },
 +    {
 +      "name": "placement",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "access", "level": "recommended",
-+        "label_pl": "Dokładne miejsce", "label_en": "Exact placement",
++        "group": "access",
++        "level": "recommended",
++        "label_pl": "Dokładne miejsce",
++        "label_en": "Exact placement",
 +        "description_pl": "Gdzie dokładnie wisi AED (np. „hol główny przy recepcji”, „ściana zewnętrzna od strony parkingu”).",
 +        "description_en": "Where exactly the AED hangs (e.g. \"main hall by the reception\", \"outer wall facing the car park\").",
 +        "example": "Hol główny przy recepcji",
-+        "synonyms": ["dokładne miejsce", "miejsce zawieszenia", "opis lokalizacji", "location_description", "placement", "umiejscowienie", "opis"]
++        "synonyms": [
++          "dokładne miejsce",
++          "miejsce zawieszenia",
++          "opis lokalizacji",
++          "location_description",
++          "placement",
++          "umiejscowienie",
++          "opis"
++        ]
 +      }
 +    },
 +    {
 +      "name": "indoor",
 +      "type": "boolean",
-+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes", "wewnątrz", "wewnatrz"],
-+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no", "zewnątrz", "zewnatrz"],
++      "trueValues": [
++        "true",
++        "tak",
++        "Tak",
++        "TAK",
++        "1",
++        "yes",
++        "wewnątrz",
++        "wewnatrz"
++      ],
++      "falseValues": [
++        "false",
++        "nie",
++        "Nie",
++        "NIE",
++        "0",
++        "no",
++        "zewnątrz",
++        "zewnatrz"
++      ],
 +      "x-aed": {
-+        "group": "access", "level": "recommended",
-+        "label_pl": "Wewnątrz budynku", "label_en": "Indoors",
++        "group": "access",
++        "level": "recommended",
++        "label_pl": "Wewnątrz budynku",
++        "label_en": "Indoors",
 +        "description_pl": "tak – AED jest wewnątrz budynku; nie – na zewnątrz.",
 +        "description_en": "yes – the AED is inside a building; no – outside.",
 +        "example": "tak",
-+        "synonyms": ["wewnątrz", "w budynku", "indoor", "device_location", "lokalizacja urządzenia"]
++        "synonyms": [
++          "wewnątrz",
++          "w budynku",
++          "indoor",
++          "device_location",
++          "lokalizacja urządzenia"
++        ]
 +      }
 +    },
 +    {
 +      "name": "floor",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "access", "level": "optional",
-+        "label_pl": "Piętro", "label_en": "Floor",
++        "group": "access",
++        "level": "optional",
++        "label_pl": "Piętro",
++        "label_en": "Floor",
 +        "description_pl": "Kondygnacja (0 = parter, -1 = piwnica).",
 +        "description_en": "Floor level (0 = ground floor, -1 = basement).",
 +        "example": "0",
-+        "synonyms": ["piętro", "pietro", "kondygnacja", "floor", "level"]
++        "synonyms": [
++          "piętro",
++          "pietro",
++          "kondygnacja",
++          "floor",
++          "level"
++        ]
 +      }
 +    },
 +    {
 +      "name": "access",
 +      "type": "string",
-+      "constraints": { "enum": ["yes", "customers", "permit", "private", "no"] },
++      "constraints": {
++        "enum": [
++          "yes",
++          "customers",
++          "permit",
++          "private",
++          "no"
++        ]
++      },
 +      "x-aed": {
-+        "group": "access", "level": "recommended",
-+        "label_pl": "Dostępność", "label_en": "Access",
++        "group": "access",
++        "level": "recommended",
++        "label_pl": "Dostępność",
++        "label_en": "Access",
 +        "description_pl": "yes – publicznie dostępny; customers – dla klientów/gości obiektu; permit – za zgodą; private – prywatny; no – niedostępny.",
 +        "description_en": "yes – public; customers – for the site's customers or visitors; permit – with permission; private – private; no – not accessible.",
 +        "example": "yes",
-+        "synonyms": ["dostępność", "dostepnosc", "dostęp", "access", "device_public_access", "publiczny"]
++        "synonyms": [
++          "dostępność",
++          "dostepnosc",
++          "dostęp",
++          "access",
++          "device_public_access",
++          "publiczny"
++        ]
 +      }
 +    },
 +    {
 +      "name": "opening_hours",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "access", "level": "recommended", "detect": "hours",
-+        "label_pl": "Godziny dostępności", "label_en": "Opening hours",
++        "group": "access",
++        "level": "recommended",
++        "detect": "hours",
++        "label_pl": "Godziny dostępności",
++        "label_en": "Opening hours",
 +        "description_pl": "Kiedy AED jest dostępny, w składni OSM opening_hours (np. „Mo-Fr 08:00-16:00”, „24/7”).",
 +        "description_en": "When the AED is accessible, in OSM opening_hours syntax (e.g. \"Mo-Fr 08:00-16:00\", \"24/7\").",
 +        "example": "Mo-Fr 08:00-16:00",
-+        "synonyms": ["godziny", "godziny otwarcia", "godziny dostępności", "dostępny w godzinach", "opening_hours", "device_access_description", "hours"]
++        "synonyms": [
++          "godziny",
++          "godziny otwarcia",
++          "godziny dostępności",
++          "dostępny w godzinach",
++          "opening_hours",
++          "device_access_description",
++          "hours"
++        ]
 +      }
 +    },
 +    {
 +      "name": "is_24_7",
 +      "type": "boolean",
-+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
-+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "trueValues": [
++        "true",
++        "tak",
++        "Tak",
++        "TAK",
++        "1",
++        "yes"
++      ],
++      "falseValues": [
++        "false",
++        "nie",
++        "Nie",
++        "NIE",
++        "0",
++        "no"
++      ],
 +      "x-aed": {
-+        "group": "access", "level": "recommended",
-+        "label_pl": "Dostępny całodobowo", "label_en": "Available 24/7",
++        "group": "access",
++        "level": "recommended",
++        "label_pl": "Dostępny całodobowo",
++        "label_en": "Available 24/7",
 +        "description_pl": "tak – dostępny 24 godziny na dobę, 7 dni w tygodniu.",
 +        "description_en": "yes – accessible 24 hours a day, 7 days a week.",
 +        "example": "nie",
-+        "synonyms": ["całodobowy", "całodobowo", "24/7", "24h", "device_availability", "dostępny całą dobę"]
++        "synonyms": [
++          "całodobowy",
++          "całodobowo",
++          "24/7",
++          "24h",
++          "device_availability",
++          "dostępny całą dobę"
++        ]
 +      }
 +    },
 +    {
 +      "name": "cabinet_locked",
 +      "type": "boolean",
-+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
-+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "trueValues": [
++        "true",
++        "tak",
++        "Tak",
++        "TAK",
++        "1",
++        "yes"
++      ],
++      "falseValues": [
++        "false",
++        "nie",
++        "Nie",
++        "NIE",
++        "0",
++        "no"
++      ],
 +      "x-aed": {
-+        "group": "access", "level": "optional",
-+        "label_pl": "Szafka zamknięta", "label_en": "Cabinet locked",
++        "group": "access",
++        "level": "optional",
++        "label_pl": "Szafka zamknięta",
++        "label_en": "Cabinet locked",
 +        "description_pl": "tak – szafka wymaga otwarcia (kod, klucz).",
 +        "description_en": "yes – the cabinet must be unlocked (code, key).",
 +        "example": "nie",
-+        "synonyms": ["zamknięta", "szafka zamknięta", "locked", "cabinet_locked"]
++        "synonyms": [
++          "zamknięta",
++          "szafka zamknięta",
++          "locked",
++          "cabinet_locked"
++        ]
 +      }
 +    },
 +    {
 +      "name": "unlock_method",
 +      "type": "string",
-+      "constraints": { "enum": ["none", "code_112", "key", "staff"] },
++      "constraints": {
++        "enum": [
++          "none",
++          "code_112",
++          "key",
++          "staff"
++        ]
++      },
 +      "x-aed": {
-+        "group": "access", "level": "optional",
-+        "label_pl": "Sposób otwarcia", "label_en": "Unlock method",
++        "group": "access",
++        "level": "optional",
++        "label_pl": "Sposób otwarcia",
++        "label_en": "Unlock method",
 +        "description_pl": "none – bez zabezpieczeń; code_112 – kod podaje dyspozytor 112; key – klucz; staff – przez personel obiektu.",
 +        "description_en": "none – unlocked; code_112 – code given by the 112 dispatcher; key – key; staff – via the site's staff.",
 +        "example": "none",
-+        "synonyms": ["sposób otwarcia", "otwarcie", "unlock", "unlock_method"]
++        "synonyms": [
++          "sposób otwarcia",
++          "otwarcie",
++          "unlock",
++          "unlock_method"
++        ]
 +      }
 +    },
 +    {
 +      "name": "manufacturer",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "device", "level": "optional",
-+        "label_pl": "Producent", "label_en": "Manufacturer",
++        "group": "device",
++        "level": "optional",
++        "label_pl": "Producent",
++        "label_en": "Manufacturer",
 +        "description_pl": "Producent urządzenia.",
 +        "description_en": "Device manufacturer.",
 +        "example": "Philips",
-+        "synonyms": ["producent", "manufacturer", "marka", "brand"]
++        "synonyms": [
++          "producent",
++          "manufacturer",
++          "marka",
++          "brand"
++        ]
 +      }
 +    },
 +    {
 +      "name": "model",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "device", "level": "optional",
-+        "label_pl": "Model", "label_en": "Model",
++        "group": "device",
++        "level": "optional",
++        "label_pl": "Model",
++        "label_en": "Model",
 +        "description_pl": "Model urządzenia.",
 +        "description_en": "Device model.",
 +        "example": "HeartStart FRx",
-+        "synonyms": ["model", "typ", "model urządzenia", "rodzaj"]
++        "synonyms": [
++          "model",
++          "typ",
++          "model urządzenia",
++          "rodzaj"
++        ]
 +      }
 +    },
 +    {
 +      "name": "serial_number",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "device", "level": "optional",
-+        "label_pl": "Numer seryjny", "label_en": "Serial number",
++        "group": "device",
++        "level": "optional",
++        "label_pl": "Numer seryjny",
++        "label_en": "Serial number",
 +        "description_pl": "Numer seryjny z etykiety urządzenia (lub z kodu UDI, identyfikator (21)).",
 +        "description_en": "Serial number from the device label (or from the UDI code, application identifier (21)).",
 +        "example": "B21G-01234",
-+        "synonyms": ["numer seryjny", "nr seryjny", "serial", "serial_number", "sn"]
++        "synonyms": [
++          "numer seryjny",
++          "nr seryjny",
++          "serial",
++          "serial_number",
++          "sn"
++        ]
 +      }
 +    },
 +    {
 +      "name": "udi_di",
 +      "type": "string",
-+      "constraints": { "pattern": "[0-9]{14}" },
++      "constraints": {
++        "pattern": "[0-9]{14}"
++      },
 +      "x-aed": {
-+        "group": "device", "level": "optional",
-+        "label_pl": "UDI-DI (GTIN)", "label_en": "UDI-DI (GTIN)",
++        "group": "device",
++        "level": "optional",
++        "label_pl": "UDI-DI (GTIN)",
++        "label_en": "UDI-DI (GTIN)",
 +        "description_pl": "14-cyfrowy identyfikator modelu z kodu UDI na urządzeniu (identyfikator (01)).",
 +        "description_en": "14-digit model identifier from the UDI code on the device (application identifier (01)).",
 +        "example": "00884838034567",
-+        "synonyms": ["udi", "udi_di", "gtin", "kod udi"]
++        "synonyms": [
++          "udi",
++          "udi_di",
++          "gtin",
++          "kod udi"
++        ]
 +      }
 +    },
 +    {
 +      "name": "status",
 +      "type": "string",
-+      "constraints": { "enum": ["active", "out_of_service", "removed", "unknown"] },
++      "constraints": {
++        "enum": [
++          "active",
++          "out_of_service",
++          "removed",
++          "unknown"
++        ]
++      },
 +      "x-aed": {
-+        "group": "device", "level": "recommended",
-+        "label_pl": "Stan urządzenia", "label_en": "Device status",
++        "group": "device",
++        "level": "recommended",
++        "label_pl": "Stan urządzenia",
++        "label_en": "Device status",
 +        "description_pl": "active – sprawny; out_of_service – niesprawny/w serwisie; removed – zdjęty; unknown – nieznany.",
 +        "description_en": "active – working; out_of_service – broken or in service; removed – taken away; unknown – not known.",
 +        "example": "active",
-+        "synonyms": ["stan", "status", "sprawny", "stan urządzenia"]
++        "synonyms": [
++          "stan",
++          "status",
++          "sprawny",
++          "stan urządzenia"
++        ]
 +      }
 +    },
 +    {
 +      "name": "paediatric_capable",
 +      "type": "boolean",
-+      "trueValues": ["true", "tak", "Tak", "TAK", "1", "yes"],
-+      "falseValues": ["false", "nie", "Nie", "NIE", "0", "no"],
++      "trueValues": [
++        "true",
++        "tak",
++        "Tak",
++        "TAK",
++        "1",
++        "yes"
++      ],
++      "falseValues": [
++        "false",
++        "nie",
++        "Nie",
++        "NIE",
++        "0",
++        "no"
++      ],
 +      "x-aed": {
-+        "group": "device", "level": "optional",
-+        "label_pl": "Tryb pediatryczny", "label_en": "Paediatric capable",
++        "group": "device",
++        "level": "optional",
++        "label_pl": "Tryb pediatryczny",
++        "label_en": "Paediatric capable",
 +        "description_pl": "tak – urządzenie ma elektrody lub tryb dla dzieci.",
 +        "description_en": "yes – the device has paediatric pads or mode.",
 +        "example": "tak",
-+        "synonyms": ["pediatryczny", "dla dzieci", "paediatric", "pediatric"]
++        "synonyms": [
++          "pediatryczny",
++          "dla dzieci",
++          "paediatric",
++          "pediatric"
++        ]
 +      }
 +    },
 +    {
 +      "name": "pads_expiry",
 +      "type": "date",
 +      "x-aed": {
-+        "group": "maintenance", "level": "recommended",
-+        "label_pl": "Ważność elektrod", "label_en": "Pads expiry",
++        "group": "maintenance",
++        "level": "recommended",
++        "label_pl": "Ważność elektrod",
++        "label_en": "Pads expiry",
 +        "description_pl": "Data ważności elektrod (RRRR-MM-DD).",
 +        "description_en": "Pads expiry date (YYYY-MM-DD).",
 +        "example": "2027-03-31",
-+        "synonyms": ["ważność elektrod", "data ważności elektrod", "elektrody", "pads_expiry"]
++        "synonyms": [
++          "ważność elektrod",
++          "data ważności elektrod",
++          "elektrody",
++          "pads_expiry"
++        ]
 +      }
 +    },
 +    {
 +      "name": "battery_expiry",
 +      "type": "date",
 +      "x-aed": {
-+        "group": "maintenance", "level": "recommended",
-+        "label_pl": "Ważność baterii", "label_en": "Battery expiry",
++        "group": "maintenance",
++        "level": "recommended",
++        "label_pl": "Ważność baterii",
++        "label_en": "Battery expiry",
 +        "description_pl": "Data ważności baterii (RRRR-MM-DD).",
 +        "description_en": "Battery expiry date (YYYY-MM-DD).",
 +        "example": "2028-01-31",
-+        "synonyms": ["ważność baterii", "data ważności baterii", "bateria", "battery_expiry"]
++        "synonyms": [
++          "ważność baterii",
++          "data ważności baterii",
++          "bateria",
++          "battery_expiry"
++        ]
 +      }
 +    },
 +    {
 +      "name": "last_verified",
 +      "type": "date",
 +      "x-aed": {
-+        "group": "maintenance", "level": "recommended",
-+        "label_pl": "Data ostatniej weryfikacji", "label_en": "Last verified",
++        "group": "maintenance",
++        "level": "recommended",
++        "label_pl": "Data ostatniej weryfikacji",
++        "label_en": "Last verified",
 +        "description_pl": "Kiedy ostatnio sprawdzono na miejscu, że AED jest i działa (RRRR-MM-DD).",
 +        "description_en": "When someone last checked on site that the AED is there and working (YYYY-MM-DD).",
 +        "example": "2026-10-15",
-+        "synonyms": ["data weryfikacji", "ostatnia weryfikacja", "data przeglądu", "przegląd", "last_verified", "check_date"]
++        "synonyms": [
++          "data weryfikacji",
++          "ostatnia weryfikacja",
++          "data przeglądu",
++          "przegląd",
++          "last_verified",
++          "check_date"
++        ]
 +      }
 +    },
 +    {
 +      "name": "operator",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "contact", "level": "optional",
-+        "label_pl": "Opiekun", "label_en": "Operator",
++        "group": "contact",
++        "level": "optional",
++        "label_pl": "Opiekun",
++        "label_en": "Operator",
 +        "description_pl": "Podmiot lub osoba opiekująca się urządzeniem na miejscu.",
 +        "description_en": "Organisation or person looking after the device on site.",
 +        "example": "Zespół Krytych Pływalni w Krośnie",
-+        "synonyms": ["opiekun", "operator", "zarządca", "administrator", "właściciel"]
++        "synonyms": [
++          "opiekun",
++          "operator",
++          "zarządca",
++          "administrator",
++          "właściciel"
++        ]
 +      }
 +    },
 +    {
 +      "name": "contact_phone",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "contact", "level": "optional",
-+        "label_pl": "Telefon kontaktowy", "label_en": "Contact phone",
++        "group": "contact",
++        "level": "optional",
++        "label_pl": "Telefon kontaktowy",
++        "label_en": "Contact phone",
 +        "description_pl": "Telefon do opiekuna (nie do osób prywatnych).",
 +        "description_en": "Phone of the operator (not of private persons).",
 +        "example": "+48 13 000 00 00",
-+        "synonyms": ["telefon", "tel", "phone", "nr telefonu"]
++        "synonyms": [
++          "telefon",
++          "tel",
++          "phone",
++          "nr telefonu"
++        ]
 +      }
 +    },
 +    {
 +      "name": "notes",
 +      "type": "string",
 +      "x-aed": {
-+        "group": "other", "level": "optional",
-+        "label_pl": "Uwagi", "label_en": "Notes",
++        "group": "other",
++        "level": "optional",
++        "label_pl": "Uwagi",
++        "label_en": "Notes",
 +        "description_pl": "Dodatkowe informacje.",
 +        "description_en": "Additional information.",
 +        "example": "",
-+        "synonyms": ["uwagi", "notes", "komentarz", "informacje dodatkowe"]
++        "synonyms": [
++          "uwagi",
++          "notes",
++          "komentarz",
++          "informacje dodatkowe"
++        ]
++      }
++    },
++    {
++      "name": "same_as",
++      "type": "string",
++      "constraints": {
++        "pattern": "(osm:(node|way|relation)/[0-9]+|[0-9]{9}([0-9]{5})?:[A-Za-z0-9._:/-]{1,64})(;(osm:(node|way|relation)/[0-9]+|[0-9]{9}([0-9]{5})?:[A-Za-z0-9._:/-]{1,64}))*"
++      },
++      "x-aed": {
++        "group": "identity",
++        "level": "optional",
++        "label_pl": "To samo urządzenie w innym źródle",
++        "label_en": "Same device in another source",
++        "description_pl": "Odwołania do tego samego urządzenia opublikowanego przez innego dostawcę (REGON dostawcy:jego aed_id, np. 000526989:5) lub w OpenStreetMap (osm:node/123), rozdzielone średnikiem. Dostawca, który je podaje, odpowiada za to powiązanie. Na tej podstawie Krajowy wykaz AED łączy rekordy w jedno urządzenie.",
++        "description_en": "References to the same device published by another provider (provider REGON:its aed_id, e.g. 000526989:5) or in OpenStreetMap (osm:node/123), separated by semicolons. The provider who states them is accountable for the link. The national AED list merges records into one device based on them.",
++        "example": "000526989:5;osm:node/4419237512",
++        "synonyms": [
++          "same_as",
++          "to samo co",
++          "powiązania",
++          "referencje",
++          "osm_id",
++          "ref"
++        ]
 +      }
 +    }
 +  ],
 +  "primaryKey": "aed_id",
-+  "missingValues": ["", "-"]
++  "missingValues": [
++    "",
++    "-"
++  ]
 +}
 diff --git a/data/standards/aed/import/openaedmap.json b/data/standards/aed/import/openaedmap.json
 new file mode 100644
@@ -579,6 +1014,22 @@ index 0000000..545fa84
 +763;Defibrylator (AED 7654) Aleje XXV Polskiej Drużyny Strzeleckiej 1 (PCKiN ZAMEK);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Aleje XXV Polskiej Drużyny Strzeleckiej;1;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.780317","long":"22.7656931"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7654-aleje-xxv-polskiej-druzyny-strzeleckiej-1-pckin-zamek-];;
 +764;Defibrylator (AED 7639) Grunwaldzka 81 (Szkoła Podstawowa Nr 16 w Przemyslu);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Grunwaldzka;81;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7844038","long":"22.7549412"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7639-grunwaldzka-81-szkola-podstawowa-nr-16-w-przemyslu-];;
 +765;Defibrylator (AED 7649) Bpa. Jakuba Glazera 44 (II Liceum Ogólnoksztalcące w Przemyślu);Defibrylator AED (Automated External Defibrillator) to przenośne urządzenie medyczne, które zostało zaprojektowane w celu ratowania życia osobom z nagłym zatrzymaniem akcji serca (NZK). AED jest łatwy w użyciu, dzięki czemu mogą z niego korzystać osoby bez specjalistycznego wykształcenia medycznego. Po włączeniu urządzenia użytkownik jest prowadzony krok po kroku poprzez instrukcje głosowe oraz wizualne, które pomagają prawidłowo przeprowadzić resuscytację. Defibrylator AED analizuje rytm serca poszkodowanego i automatycznie określa, czy konieczne jest wykonanie defibrylacji, czyli impulsu elektrycznego mającego na celu przywrócenie prawidłowego rytmu serca. W przypadku, gdy defibrylacja jest potrzebna, AED wydaje polecenie naciśnięcia przycisku, który wyzwala impuls elektryczny. Urządzenie posiada wbudowane zabezpieczenia, które uniemożliwiają wykonanie defibrylacji, jeśli rytm serca nie wymaga takiej interwencji, co zwiększa bezpieczeństwo użytkownika. Defibrylatory AED są często instalowane w miejscach publicznych, takich jak lotniska, centra handlowe, dworce, oraz w miejscach pracy, aby zapewnić szybki dostęp do sprzętu ratującego życie w sytuacjach nagłego zatrzymania krążenia.;Defibrylatory AED;Przemyśl;Bpa. Jakuba Glazera;44;37-700;;;;;;{"type":"Point","coordinates":{"lat":"49.7916725","long":"22.7531132"}};[1][url:https://przemysl.skycms.com.pl/download/156869/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-][thumbUrl:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/auto/120/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-][thumbUrlMedium:https://przemysl.skycms.com.pl/download/thumbnailCustom/156869/300/auto/defibrylator-aed-7649-bpa-jakuba-glazera-44-ii-liceum-ogolnoksztalcace-w-przemyslu-];;
+diff --git a/mcod/celeryapp.py b/mcod/celeryapp.py
+index 7e5ddce..52d9b10 100644
+--- a/mcod/celeryapp.py
++++ b/mcod/celeryapp.py
+@@ -85,6 +85,11 @@ def get_beat_schedule(
+             "options": default_options,
+             "schedule": crontab(minute=30, hour=3),
+         },
++        "standard_aggregates_creation": {
++            "task": "mcod.standards.tasks.build_standard_aggregates_task",
++            "options": default_options,
++            "schedule": crontab(minute=0, hour=4),
++        },
+         "dga_main_resource_creation": {
+             "task": "mcod.resources.tasks.create_main_dga_resource_task",
+             "options": default_options,
 diff --git a/mcod/datasets/admin.py b/mcod/datasets/admin.py
 index c8cb8b0..ec57e1d 100644
 --- a/mcod/datasets/admin.py
@@ -673,7 +1124,7 @@ index 0000000..03db292
 +        ),
 +    ]
 diff --git a/mcod/datasets/models.py b/mcod/datasets/models.py
-index 7c45255..0c3dfcb 100644
+index 7c45255..4cd2f2c 100644
 --- a/mcod/datasets/models.py
 +++ b/mcod/datasets/models.py
 @@ -309,6 +309,15 @@ class Dataset(ExtendedModel):
@@ -692,8 +1143,33 @@ index 7c45255..0c3dfcb 100644
      update_notification_frequency = models.PositiveSmallIntegerField(
          null=True, blank=True, verbose_name=_("set notifications frequency")
      )
+@@ -496,6 +505,12 @@ class Dataset(ExtendedModel):
+     def is_imported_from_xml(self):
+         return self.is_imported and self.source.is_xml
+ 
++    @property
++    def data_standard_info(self):
++        """{"code", "version", "title"} of the data standard this dataset is bound to, or None."""
++        standard = self.data_standard
++        return {"code": standard.code, "version": standard.version, "title": standard.title} if standard else None
++
+     @property
+     def is_published(self):
+         return self.status == "published"
+diff --git a/mcod/datasets/serializers.py b/mcod/datasets/serializers.py
+index c0fbf76..a8b396a 100644
+--- a/mcod/datasets/serializers.py
++++ b/mcod/datasets/serializers.py
+@@ -440,6 +440,7 @@ class DatasetApiAttrs(ObjectAttrs, HighlightObjectMixin, LikeableSearchApiObject
+     has_dynamic_data = fields.Boolean()
+     has_high_value_data = fields.Boolean()
+     has_high_value_data_from_ec_list = fields.Boolean()
++    data_standard = fields.Dict(attribute="data_standard_info", allow_none=True)
+     has_research_data = fields.Boolean()
+     is_promoted = fields.Boolean()
+     regions = fields.Nested(RegionSchema, many=True)
 diff --git a/mcod/resources/admin.py b/mcod/resources/admin.py
-index ccd65a4..d61b404 100644
+index ccd65a4..bad0d52 100644
 --- a/mcod/resources/admin.py
 +++ b/mcod/resources/admin.py
 @@ -278,6 +278,8 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
@@ -715,7 +1191,7 @@ index ccd65a4..d61b404 100644
 +                        None,
 +                        {
 +                            "classes": ("suit-tab", "suit-tab-standard", "full-width"),
-+                            "fields": ("standard_conformity",),
++                            "fields": ("standard_mapping", "standard_conformity"),
 +                        },
 +                    )
 +                )
@@ -740,10 +1216,17 @@ index ccd65a4..d61b404 100644
      def lang(self, obj):
          return obj.get_language_display()
  
-@@ -900,6 +921,16 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
+@@ -900,6 +921,23 @@ class ResourceAdmin(HistoryMixin, ModelAdmin):  # MRO matters here for unescape
          if form.cleaned_data.get("file"):
              ResourceFile.objects.update_or_create(resource=obj, is_main=True, defaults={"file": form.cleaned_data["file"]})
  
++        new_mapping = getattr(form, "standard_mapping_new", None)
++        if new_mapping is not None:
++            from mcod.standards.conformity import set_manual_mapping
++
++            set_manual_mapping(obj, new_mapping, reprocess=not getattr(form, "standard_publish_requested", False))
++            self.message_user(request, _("The column mapping was saved. The file is being checked against the data standard again."))
++
 +        if getattr(form, "standard_publish_requested", False):
 +            from mcod.standards.conformity import request_verification
 +
@@ -758,10 +1241,18 @@ index ccd65a4..d61b404 100644
              obj.revalidate()
  
 diff --git a/mcod/resources/forms.py b/mcod/resources/forms.py
-index fd4a5b7..514aecf 100644
+index fd4a5b7..3793f67 100644
 --- a/mcod/resources/forms.py
 +++ b/mcod/resources/forms.py
-@@ -302,6 +302,7 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
+@@ -31,6 +31,7 @@ from mcod.lib.widgets import (
+ from mcod.organizations.models import Organization
+ from mcod.regions.fields import RegionsMultipleChoiceField
+ from mcod.resources.archives import is_password_protected_archive_file
++from mcod.standards.widgets import StandardMappingWidget
+ from mcod.resources.dga_constants import (
+     ALLOWED_DGA_INSTITUTIONS,
+     DGA_COLUMNS,
+@@ -302,6 +303,7 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
          self._validate_data_date(data)
          self._validate_resource_status(data)
          self._validate_related_resource(data)
@@ -769,7 +1260,7 @@ index fd4a5b7..514aecf 100644
  
          # Check if updating Main DGA Resource
          is_main_dga_resource: bool = self._is_main_dga_resource_updated(instance_pk)
-@@ -354,6 +355,44 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
+@@ -354,6 +356,91 @@ class ResourceForm(forms.ModelForm, HighValueDataFormValidatorMixin):
              )
              self.add_error("status", mark_safe(error_message + dataset.title_as_link))
  
@@ -783,9 +1274,18 @@ index fd4a5b7..514aecf 100644
 +        from mcod.standards.models import ResourceConformity
 +
 +        self.standard_publish_requested = False
++        self.standard_mapping_new = None
 +        dataset = data.get("dataset")
 +        standard = getattr(dataset, "data_standard", None) if dataset else None
-+        if not standard or data.get("status") != "published":
++        if not standard:
++            return
++        mapping_changed = self._clean_standard_mapping(data, standard)
++        if data.get("status") != "published":
++            return
++        if mapping_changed:
++            # The new mapping is checked after saving; publish automatically if it then conforms.
++            data["status"] = "draft"
++            self.standard_publish_requested = True
 +            return
 +
 +        file_replaced = bool(data.get("file")) or (
@@ -811,9 +1311,63 @@ index fd4a5b7..514aecf 100644
 +                % {"std": standard, "d": detail},
 +            )
 +
++    def _clean_standard_mapping(self, data: dict, standard) -> bool:
++        """Parse the column mapping edited on the "Data standard" tab. Returns True if it differs from the stored one."""
++        import json
++
++        from mcod.standards.models import ResourceConformity
++        from mcod.standards.widgets import decode, encode
++
++        raw = data.get("standard_mapping")
++        if not raw or not self.instance.pk:
++            return False
++        conformity = ResourceConformity.objects.filter(resource=self.instance).first()
++        headers = ((conformity.report or {}).get("headers") if conformity else None) or [
++            f.get("name", "") for f in (self.instance.tabular_data_schema or {}).get("fields", [])
++        ]
++        choices = json.loads(raw)
++        current = {name: encode(item) for name, item in ((conformity.mapping if conformity else None) or {}).items()}
++        if {k: v for k, v in choices.items() if v} == {k: v for k, v in current.items() if v}:
++            return False
++
++        used = {}
++        for field_name, value in choices.items():
++            if value.startswith("col:"):
++                if value in used:
++                    self.add_error(
++                        "standard_mapping",
++                        _("Column \"%(col)s\" is assigned to both \"%(a)s\" and \"%(b)s\".")
++                        % {"col": headers[int(value[4:])], "a": used[value], "b": field_name},
++                    )
++                    return False
++                used[value] = field_name
++        if choices.get("lat", "").startswith("point:") != choices.get("lon", "").startswith("point:") or (
++            choices.get("lat", "").startswith("point:") and choices.get("lat") != choices.get("lon")
++        ):
++            self.add_error("standard_mapping", _("Latitude and longitude must both come from the same point column."))
++            return False
++        self.standard_mapping_new = decode(choices, headers)
++        return True
++
      def _validate_related_resource(self, data: dict) -> None:
          related_resource = data.get("related_resource")
          dataset = data.get("dataset")
+@@ -540,6 +627,7 @@ class ChangeResourceForm(ResourceForm, UnEscapeWidgetMixin):
+     tabular_data_schema = JSONField(widget=ResourceDataSchemaWidget(), required=False)
+     data_rules = JSONField(widget=ResourceDataRulesWidget(), required=False)
+     maps_and_plots = MapsJSONField(widget=ResourceMapsAndPlotsWidget(), required=False)
++    standard_mapping = forms.CharField(required=False, widget=StandardMappingWidget(), label=_("Column mapping"))
+ 
+     def __init__(self, *args, **kwargs):
+         if "instance" in kwargs:
+@@ -559,6 +647,7 @@ class ChangeResourceForm(ResourceForm, UnEscapeWidgetMixin):
+             self.fields["tabular_data_schema"].widget.instance = self.instance
+             self.fields["data_rules"].widget.instance = self.instance
+             self.fields["maps_and_plots"].widget.instance = self.instance
++            self.fields["standard_mapping"].widget.instance = self.instance
+             if "regions" in self.fields:
+                 self.fields["regions"].choices = self.instance.regions.all().values_list("region_id", "hierarchy_label")
+ 
 diff --git a/mcod/resources/goodtables_checks.py b/mcod/resources/goodtables_checks.py
 index ef3ce95..e572d86 100644
 --- a/mcod/resources/goodtables_checks.py
@@ -883,6 +1437,44 @@ index c4312e3..1388173 100644
              skip_checks=["extra-header", "blank-header", "blank-row", "duplicate-row"],
              error_limit=10,
              format=self.resource_format,
+diff --git a/mcod/resources/models.py b/mcod/resources/models.py
+index e15c616..df37ee5 100644
+--- a/mcod/resources/models.py
++++ b/mcod/resources/models.py
+@@ -1374,6 +1374,21 @@ class Resource(ExtendedModel):
+     def is_published(self):
+         return self.status == "published"
+ 
++    @property
++    def standard_conformity_info(self):
++        """Conformity with the dataset's data standard: {"standard", "status", "rows", "errors", "checked_at"} or None."""
++        conformity = getattr(self, "conformity", None) if self.pk else None
++        if conformity is None:
++            return None
++        report = conformity.report or {}
++        return {
++            "standard": f"{conformity.standard.code} {conformity.standard.version}",
++            "status": conformity.status,
++            "rows": report.get("rows"),
++            "errors": report.get("error_count", 0),
++            "checked_at": conformity.checked_at.isoformat() if conformity.checked_at else None,
++        }
++
+     @property
+     def is_dga(self) -> bool:
+         """
+diff --git a/mcod/resources/serializers.py b/mcod/resources/serializers.py
+index 556b15c..9f3618f 100644
+--- a/mcod/resources/serializers.py
++++ b/mcod/resources/serializers.py
+@@ -150,6 +150,7 @@ class ResourceApiAttrs(ObjectAttrs, HighlightObjectMixin):
+     has_high_value_data_from_ec_list = fields.Boolean()
+     has_research_data = fields.Boolean()
+     contains_protected_data = fields.Boolean()
++    standard_conformity = fields.Dict(attribute="standard_conformity_info", allow_none=True)
+     regions = fields.Method("get_regions")
+     files = fields.Method("get_files")
+     supplement_docs = fields.Nested(SupplementSchema, data_key="supplements", many=True)
 diff --git a/mcod/resources/tasks/process_resource_file_data.py b/mcod/resources/tasks/process_resource_file_data.py
 index a7621f0..0089cdd 100644
 --- a/mcod/resources/tasks/process_resource_file_data.py
@@ -906,6 +1498,27 @@ index a7621f0..0089cdd 100644
      resource.data.validate()
  
      success, failed = resource.data.index(force=True)
+diff --git a/mcod/routes.py b/mcod/routes.py
+index 1c2468c..3ba0668 100644
+--- a/mcod/routes.py
++++ b/mcod/routes.py
+@@ -13,6 +13,7 @@ from mcod.schedules import views as schedules_views
+ from mcod.search import views as search_views
+ from mcod.searchhistories import views as searchhistory_views
+ from mcod.showcases import views as showcases_views
++from mcod.standards import views as standards_views
+ from mcod.submissions import views as generic_submission_views
+ from mcod.suggestions import views as submission_views
+ from mcod.tools import views as tools_views
+@@ -147,6 +148,8 @@ routes = [
+     ("/resources/{id:int},{slug}/comments", res_views.ResourceCommentsView()),
+     # DGA
+     ("/dga-aggregated", res_views.AggregatedDGAInfoView()),
++    # Data standards: national (combined) list, e.g. /standards/aed/aggregated
++    ("/standards/{code}/aggregated", standards_views.StandardAggregateView()),
+     # Depricated views
+     ("/resources/{id:int}/incr_download_count", res_views.ResourceDownloadCounter()),
+     (
 diff --git a/mcod/settings/base.py b/mcod/settings/base.py
 index a88e90b..c478b1a 100644
 --- a/mcod/settings/base.py
@@ -930,10 +1543,10 @@ index 0000000..0b806f1
 +    default_app_config = "mcod.standards.apps.StandardsConfig"
 diff --git a/mcod/standards/admin.py b/mcod/standards/admin.py
 new file mode 100644
-index 0000000..108197c
+index 0000000..af1d56b
 --- /dev/null
 +++ b/mcod/standards/admin.py
-@@ -0,0 +1,147 @@
+@@ -0,0 +1,199 @@
 +import json
 +
 +from django.contrib import admin
@@ -941,7 +1554,7 @@ index 0000000..108197c
 +from django.utils.html import escape, format_html
 +from django.utils.safestring import mark_safe
 +
-+from mcod.standards.models import DataStandard, ResourceConformity
++from mcod.standards.models import DataStandard, ResourceConformity, StandardAggregate
 +
 +STATUS_STYLE = {
 +    ResourceConformity.STATUS_OK: ("#15803d", "Zgodny ze standardem"),
@@ -1047,7 +1660,19 @@ index 0000000..108197c
 +class DataStandardAdmin(admin.ModelAdmin):
 +    list_display = ("title", "code", "version", "is_active", "fields_count", "datasets_count", "modified")
 +    readonly_fields = ("code", "version", "definition_pretty", "created", "modified")
-+    fields = ("title", "code", "version", "description", "is_active", "definition_pretty", "created", "modified")
++    fields = (
++        "title", "code", "version", "description", "is_active", "aggregate_owner", "definition_pretty", "created", "modified",
++    )
++    actions = ["build_national_list"]
++
++    def build_national_list(self, request, queryset):
++        from mcod.standards.tasks import build_standard_aggregates_task
++
++        for standard in queryset:
++            build_standard_aggregates_task.delay(standard.code)
++        self.message_user(request, "Budowanie wykazu krajowego zostało zlecone (zadanie w tle).")
++
++    build_national_list.short_description = "Zbuduj wykaz krajowy teraz"
 +
 +    def fields_count(self, obj):
 +        return len(obj.fields)
@@ -1081,6 +1706,530 @@ index 0000000..108197c
 +        return render_conformity(obj.resource)
 +
 +    report_html.short_description = "Raport"
++
++
++@admin.register(StandardAggregate)
++class StandardAggregateAdmin(admin.ModelAdmin):
++    list_display = ("standard", "rows", "providers_count", "dataset", "resource", "built_at")
++    readonly_fields = (
++        "standard", "dataset", "resource", "full_resource", "conflicts_resource", "changes_resource", "stats_html", "built_at",
++    )
++    fields = readonly_fields
++
++    def rows(self, obj):
++        return obj.stats.get("rows", 0)
++
++    rows.short_description = "Wiersze"
++
++    def providers_count(self, obj):
++        return len(obj.stats.get("providers", []))
++
++    providers_count.short_description = "Pliki dostawców"
++
++    def stats_html(self, obj):
++        stats = obj.stats or {}
++        items = "".join(
++            format_html("<li>{} – {} wierszy (zbiór {}, plik {})</li>", p["provider"], p["rows"], p["dataset_id"], p["resource_id"])
++            for p in stats.get("providers", [])
++        )
++        skipped = "".join(format_html("<li>{}: {}</li>", s["provider"], s["error"]) for s in stats.get("skipped", []))
++        return format_html(
++            "<p>Urządzeń: <b>{}</b> z {} rekordów dostawców; połączone {}, możliwe duplikaty {}, rozbieżności {}, "
++            "nierozpoznane odwołania {}; dodane {}, zmienione {}, usunięte {}</p><ul>{}</ul>{}",
++            stats.get("rows", 0), stats.get("source_rows", 0), stats.get("merged_devices", 0),
++            stats.get("possible_duplicates", 0), stats.get("conflicts", 0), stats.get("unresolved_refs", 0),
++            stats.get("added", 0), stats.get("changed", 0), stats.get("removed", 0),
++            mark_safe(items), mark_safe(f"<p>Pominięte:</p><ul>{skipped}</ul>" if skipped else ""),
++        )
++
++    stats_html.short_description = "Statystyki"
++
++    def has_add_permission(self, request):
++        return False
+diff --git a/mcod/standards/aggregate.py b/mcod/standards/aggregate.py
+new file mode 100644
+index 0000000..99fad8f
+--- /dev/null
++++ b/mcod/standards/aggregate.py
+@@ -0,0 +1,478 @@
++"""
++National list of a data standard (e.g. "Krajowy wykaz AED"), built the way the portal builds the DGA list
++(`resources/tasks/dga.py`), plus merging by the standard's published rules (`x-standard.merge`).
++
++1. Every conforming, published file of every dataset bound to the standard is converted to the standard's columns.
++2. Rows are grouped into one device only on deterministic evidence: an explicit `same_as` reference (another
++   provider's `REGON:aed_id`, or a shared `osm:` reference) or the same device identity (UDI + serial, or
++   manufacturer + model + serial). Being close to each other only flags a possible duplicate.
++3. Each field of a merged device comes from the provider with the highest precedence (by institution type), then the
++   newer `last_verified`; empty values never overwrite filled ones. Disagreements in critical fields are reported.
++4. Four files with stable ids are published by the coordinating institution: the merged list, the full list of all
++   provider rows, the conflicts and the changes since the previous run.
++
++Deterministic only (no AI). Providers stay accountable for their rows: every merged device lists all its sources.
++"""
++
++import csv
++import datetime
++import hashlib
++import logging
++import math
++import os
++import tempfile
++from collections import defaultdict
++
++from django.core.files.uploadedfile import SimpleUploadedFile
++from django.db import transaction
++from django.utils import timezone
++
++from mcod.standards.conformity import normalize_rows, request_verification
++from mcod.standards.models import DataStandard, ResourceConformity, StandardAggregate
++
++logger = logging.getLogger("mcod")
++
++PROVENANCE_COLUMNS = ["provider_aed_id", "provider", "provider_id", "source_dataset_id", "source_resource_id", "record_key"]
++MERGED_COLUMNS = PROVENANCE_COLUMNS + ["sources", "merged_from", "possible_duplicate_of"]
++FULL_COLUMNS = PROVENANCE_COLUMNS + ["merged_into"]
++CHANGE_COLUMNS = ["change", "aed_id", "record_key", "provider", "name", "lat", "lon"]
++CONFLICT_COLUMNS = ["aed_id", "lat", "lon", "name", "record_key", "field", "source_record_key", "provider", "value"]
++
++DEFAULT_RULES = {
++    "precedence_by_institution_type": {"local": 30, "state": 30, "private": 20, "developer": 20, "other": 10},
++    "default_precedence": 10,
++    "flag_distance_m": 50,
++    "conflict_fields": ["opening_hours", "is_24_7", "access", "status"],
++    "conflict_distance_m": 25,
++}
++
++
++class AggregateError(Exception):
++    pass
++
++
++def merge_rules(standard):
++    rules = dict(DEFAULT_RULES)
++    rules.update(standard.definition.get("x-standard", {}).get("merge", {}))
++    return rules
++
++
++def _texts(standard):
++    meta = standard.definition.get("x-standard", {})
++    title = meta.get("aggregate_title_pl") or f"{standard.title} – wykaz krajowy"
++    return {
++        "dataset_title": title,
++        "dataset_notes": (
++            f"Wykaz zbiorczy wszystkich zgodnych ze standardem {standard} plików opublikowanych w portalu przez "
++            "dostawców. Rekordy opisujące to samo urządzenie są łączone tylko na podstawie jawnych powiązań "
++            "(kolumna same_as) lub tego samego identyfikatora urządzenia; wartości pochodzą od dostawcy o najwyższym "
++            "priorytecie (zasady w definicji standardu). Każdy wiersz wskazuje dostawcę i wszystkie źródła (sources), "
++            "a rozbieżności między dostawcami są publikowane w osobnym pliku. Wykaz jest odtwarzany automatycznie."
++        ),
++        "list_title": title,
++        "list_description": (
++            f"Jedno urządzenie = jeden wiersz, w standardzie {standard}. aed_id to krajowy klucz rekordu "
++            "(identyfikator dostawcy:aed_id dostawcy), sources – wszystkie połączone rekordy dostawców, "
++            "possible_duplicate_of – rekord innego dostawcy w pobliżu (do sprawdzenia, nie połączony)."
++        ),
++        "full_title": f"{title} – wszystkie rekordy dostawców",
++        "full_description": "Wszystkie wiersze wszystkich dostawców bez łączenia; merged_into wskazuje urządzenie w wykazie.",
++        "conflicts_title": f"{title} – rozbieżności między dostawcami",
++        "conflicts_description": "Pola, w których połączone rekordy różnych dostawców podają różne wartości.",
++        "changes_title": f"{title} – zmiany od poprzedniej wersji",
++        "changes_description": "Urządzenia dodane (added), usunięte (removed) lub zmienione (changed) od poprzedniego wykazu.",
++    }
++
++
++def conforming_files(standard, exclude_dataset_id=None):
++    """Published files that conform to the standard, in published datasets bound to it (excluding the list itself)."""
++    qs = (
++        ResourceConformity.objects.filter(
++            standard=standard,
++            status=ResourceConformity.STATUS_OK,
++            resource__status="published",
++            resource__is_removed=False,
++            resource__dataset__status="published",
++            resource__dataset__is_removed=False,
++            resource__dataset__data_standard=standard,
++        )
++        .select_related("resource", "resource__dataset", "resource__dataset__organization")
++        .order_by("resource__dataset__organization__title", "resource_id")
++    )
++    if exclude_dataset_id:
++        qs = qs.exclude(resource__dataset_id=exclude_dataset_id)
++    return qs
++
++
++# --- collecting -----------------------------------------------------------------
++
++
++def collect_rows(standard, aggregate, rules):
++    """All rows of all conforming files, in the standard's columns, with provenance. Returns (rows, providers, skipped)."""
++    precedence = rules["precedence_by_institution_type"]
++    rows, providers, skipped, seen = [], [], [], set()
++    for conformity in conforming_files(standard, exclude_dataset_id=aggregate.dataset_id):
++        resource = conformity.resource
++        org = resource.dataset.organization
++        count = 0
++        try:
++            for row in normalize_rows(resource, standard, conformity.mapping):
++                key = f"{org.pk}:{row.get('aed_id', '')}"
++                if key in seen:  # duplicate aed_id within one provider's file: keep the first
++                    continue
++                seen.add(key)
++                row.update(
++                    provider_aed_id=row.get("aed_id", ""),
++                    provider=org.title,
++                    provider_id=str(org.pk),
++                    source_dataset_id=str(resource.dataset_id),
++                    source_resource_id=str(resource.pk),
++                    record_key=key,
++                )
++                row["_regon"] = (org.regon or "").strip()
++                row["_precedence"] = precedence.get(org.institution_type, rules["default_precedence"])
++                rows.append(row)
++                count += 1
++        except Exception as exc:  # a broken source must not stop the national list (as in the DGA list)
++            logger.exception("standards: skipping resource %s in the %s list", resource.pk, standard.code)
++            skipped.append({"resource_id": resource.pk, "provider": org.title, "error": str(exc)[:300]})
++            continue
++        providers.append(
++            {
++                "provider": org.title,
++                "provider_id": org.pk,
++                "dataset_id": resource.dataset_id,
++                "resource_id": resource.pk,
++                "rows": count,
++                "precedence": precedence.get(org.institution_type, rules["default_precedence"]),
++            }
++        )
++    return rows, providers, skipped
++
++
++# --- grouping -------------------------------------------------------------------
++
++
++class _UnionFind:
++    def __init__(self, n):
++        self.parent = list(range(n))
++
++    def find(self, i):
++        while self.parent[i] != i:
++            self.parent[i] = self.parent[self.parent[i]]
++            i = self.parent[i]
++        return i
++
++    def union(self, a, b):
++        ra, rb = self.find(a), self.find(b)
++        if ra != rb:
++            self.parent[max(ra, rb)] = min(ra, rb)
++
++
++def _refs(value):
++    return [r.strip() for r in (value or "").split(";") if r.strip()]
++
++
++def group_rows(rows):
++    """Group rows that describe the same device. Returns (groups, unresolved_refs)."""
++    uf = _UnionFind(len(rows))
++    own = {}  # "REGON:aed_id" -> row index
++    for i, row in enumerate(rows):
++        if row["_regon"]:
++            own[f"{row['_regon']}:{row['provider_aed_id']}"] = i
++
++    shared = defaultdict(list)  # osm reference or device identity -> row indexes
++    unresolved = 0
++    for i, row in enumerate(rows):
++        for ref in _refs(row.get("same_as")):
++            if ref.startswith("osm:"):
++                shared[ref].append(i)
++            elif ref in own:
++                uf.union(i, own[ref])
++            else:
++                unresolved += 1
++        serial = (row.get("serial_number") or "").strip().lower()
++        if serial and (row.get("udi_di") or "").strip():
++            shared[("udi", row["udi_di"].strip(), serial)].append(i)
++        if serial and (row.get("manufacturer") or "").strip() and (row.get("model") or "").strip():
++            shared[("device", row["manufacturer"].strip().lower(), row["model"].strip().lower(), serial)].append(i)
++    for members in shared.values():
++        for j in members[1:]:
++            uf.union(members[0], j)
++
++    groups = defaultdict(list)
++    for i in range(len(rows)):
++        groups[uf.find(i)].append(i)
++    return list(groups.values()), unresolved
++
++
++# --- merging --------------------------------------------------------------------
++
++
++def _distance_m(a, b):
++    try:
++        la1, lo1, la2, lo2 = (math.radians(float(x)) for x in (a["lat"], a["lon"], b["lat"], b["lon"]))
++    except (TypeError, ValueError):
++        return None
++    h = math.sin((la2 - la1) / 2) ** 2 + math.cos(la1) * math.cos(la2) * math.sin((lo2 - lo1) / 2) ** 2
++    return 6371000 * 2 * math.asin(math.sqrt(h))
++
++
++def _norm(value):
++    return " ".join(str(value).split()).lower()
++
++
++def merge_group(rows, members, names, rules):
++    """One device from a group of provider rows. Returns (merged_row, conflicts)."""
++    order = sorted(members, key=lambda i: (rows[i]["_precedence"], rows[i].get("last_verified") or "", -i), reverse=True)
++    primary = rows[order[0]]
++    merged = {}
++    for name in names:
++        if name in ("aed_id", "same_as", "lat", "lon"):
++            continue
++        merged[name] = next((rows[i][name] for i in order if rows[i].get(name)), "")
++    merged["lat"], merged["lon"] = primary["lat"], primary["lon"]  # coordinates always come together
++    merged["aed_id"] = primary["record_key"]
++
++    refs = []
++    for i in order:
++        row = rows[i]
++        if i != order[0] and row["_regon"]:
++            refs.append(f"{row['_regon']}:{row['provider_aed_id']}")
++        refs.extend(_refs(row.get("same_as")))
++    own_ref = f"{primary['_regon']}:{primary['provider_aed_id']}" if primary["_regon"] else None
++    merged["same_as"] = ";".join(dict.fromkeys(r for r in refs if r != own_ref))
++
++    for key in PROVENANCE_COLUMNS:
++        merged[key] = primary[key]
++    merged["sources"] = ";".join(rows[i]["record_key"] for i in order)
++    merged["merged_from"] = str(len(order))
++    merged["possible_duplicate_of"] = ""
++
++    conflicts = []
++    if len(order) > 1:
++        for field in rules["conflict_fields"]:
++            values = [(i, rows[i].get(field)) for i in order if rows[i].get(field)]
++            if len({_norm(v) for _, v in values}) > 1:
++                conflicts.extend((field, rows[i], v) for i, v in values)
++        far = [i for i in order[1:] if (_distance_m(primary, rows[i]) or 0) > rules["conflict_distance_m"]]
++        if far:
++            conflicts.extend(("position", rows[i], f"{rows[i]['lat']},{rows[i]['lon']}") for i in [order[0], *far])
++    return merged, conflicts
++
++
++def flag_nearby(merged_rows, distance_m):
++    """Mark devices of different providers closer than distance_m: possible duplicates (reported, never merged)."""
++    cell_lat = distance_m / 111_000
++    cells = defaultdict(list)
++    for idx, row in enumerate(merged_rows):
++        try:
++            lat, lon = float(row["lat"]), float(row["lon"])
++        except (TypeError, ValueError):
++            continue
++        cell_lon = cell_lat / max(math.cos(math.radians(lat)), 0.1)
++        cells[(int(lat // cell_lat), int(lon // cell_lon))].append(idx)
++        row["_cell"] = (int(lat // cell_lat), int(lon // cell_lon))
++    flagged = 0
++    for idx, row in enumerate(merged_rows):
++        if "_cell" not in row:
++            continue
++        mine = set(row["sources"].split(";"))
++        my_providers = {k.split(":", 1)[0] for k in mine}
++        best = None
++        cy, cx = row["_cell"]
++        for dy in (-1, 0, 1):
++            for dx in (-1, 0, 1):
++                for other in cells.get((cy + dy, cx + dx), ()):
++                    if other == idx:
++                        continue
++                    o = merged_rows[other]
++                    if my_providers & {k.split(":", 1)[0] for k in o["sources"].split(";")}:
++                        continue  # same provider: several AEDs in one place are normal
++                    d = _distance_m(row, o)
++                    if d is not None and d <= distance_m and (best is None or d < best[0]):
++                        best = (d, o["aed_id"])
++        if best:
++            row["possible_duplicate_of"] = best[1]
++            flagged += 1
++    for row in merged_rows:
++        row.pop("_cell", None)
++    return flagged
++
++
++# --- publishing -----------------------------------------------------------------
++
++
++def _ensure_dataset(standard, aggregate, owner, texts):
++    from mcod.categories.models import Category
++    from mcod.datasets.models import Dataset
++    from mcod.tags.models import Tag
++
++    dataset = aggregate.dataset
++    if dataset is None or dataset.is_removed:
++        dataset = Dataset.objects.create(
++            title=texts["dataset_title"],
++            notes=texts["dataset_notes"],
++            organization=owner,
++            data_standard=standard,
++            update_frequency="daily",
++            has_dynamic_data=False,
++            has_high_value_data=False,
++            has_high_value_data_from_ec_list=False,
++            has_research_data=False,
++            status="published",
++        )
++        category = Category.objects.filter(code="HEAL").order_by("id").first()
++        if category:
++            dataset.categories.set([category])
++        tag, _ = Tag.objects.get_or_create(name=standard.code.upper(), language="pl", defaults={"status": "published"})
++        dataset.tags.add(tag)
++        aggregate.dataset = dataset
++    elif (dataset.title, dataset.notes) != (texts["dataset_title"], texts["dataset_notes"]):
++        Dataset.raw.filter(pk=dataset.pk).update(title=texts["dataset_title"], notes=texts["dataset_notes"])
++        dataset.refresh_from_db()
++    return dataset
++
++
++def _put_file(dataset, resource, path, title, description, file_name):
++    """Create the file the first time (verified, then published), or replace its content keeping the same id."""
++    from mcod.resources.models import Resource, ResourceFile
++
++    with open(path, "rb") as fh:
++        upload = SimpleUploadedFile(name=file_name, content=fh.read(), content_type="text/csv")
++    if resource is None or resource.is_removed:
++        resource = Resource.objects.create(
++            title=title,
++            description=description,
++            dataset=dataset,
++            status="draft",
++            data_date=datetime.date.today(),
++            has_dynamic_data=False,
++            has_high_value_data=False,
++            has_high_value_data_from_ec_list=False,
++            has_research_data=False,
++        )
++        ResourceFile.objects.create(resource=resource, is_main=True, file=upload)
++        request_verification(resource)  # published automatically once it conforms
++    else:
++        ResourceFile.objects.update_or_create(resource=resource, is_main=True, defaults={"file": upload})
++        Resource.raw.filter(pk=resource.pk).update(data_date=datetime.date.today(), title=title, description=description)
++        # Reload: the in-memory resource still points at the old file, which breaks the portal's file processing
++        # ("'LightStateFieldFile' object has no attribute 'instance'").
++        resource = Resource.raw.get(pk=resource.pk)
++        resource.revalidate()
++    return resource
++
++
++def _write_csv(prefix, header, rows):
++    fd, path = tempfile.mkstemp(suffix=".csv", prefix=prefix)
++    with os.fdopen(fd, "w", encoding="utf-8", newline="") as fh:
++        writer = csv.DictWriter(fh, fieldnames=header, lineterminator="\n", extrasaction="ignore")
++        writer.writeheader()
++        writer.writerows(rows)
++    return path
++
++
++def _publish(dataset, resource, rows, header, title, description, file_name, prefix):
++    path = _write_csv(prefix, header, rows)
++    try:
++        return _put_file(dataset, resource, path, title, description, file_name)
++    finally:
++        os.unlink(path)
++
++
++def _row_hash(row, columns):
++    return hashlib.sha1("\x1f".join(str(row.get(c, "")) for c in columns).encode("utf-8")).hexdigest()
++
++
++def build_aggregate(standard: DataStandard) -> StandardAggregate:
++    owner = standard.aggregate_owner
++    if owner is None:
++        raise AggregateError(f"{standard}: no national list owner (DataStandard.aggregate_owner)")
++
++    aggregate, _ = StandardAggregate.objects.get_or_create(standard=standard)
++    rules = merge_rules(standard)
++    texts = _texts(standard)
++    names = [f["name"] for f in standard.fields]
++    stem = f"{standard.code}-{standard.version}".replace(".", "_")
++    today = f"{timezone.localdate():%Y-%m-%d}"
++
++    with transaction.atomic():
++        dataset = _ensure_dataset(standard, aggregate, owner, texts)
++        aggregate.save()
++
++        rows, providers, skipped = collect_rows(standard, aggregate, rules)
++        groups, unresolved = group_rows(rows)
++        merged_rows, conflict_rows = [], []
++        for members in sorted(groups, key=min):
++            merged, conflicts = merge_group(rows, members, names, rules)
++            merged_rows.append(merged)
++            for i in members:
++                rows[i]["merged_into"] = merged["aed_id"]
++            for n, (field, source, value) in enumerate(conflicts, 1):
++                conflict_rows.append(
++                    {
++                        "aed_id": f"{merged['aed_id']}/{n}",  # must match the standard's aed_id pattern
++                        "lat": merged["lat"],
++                        "lon": merged["lon"],
++                        "name": merged["name"],
++                        "record_key": merged["aed_id"],
++                        "field": field,
++                        "source_record_key": source["record_key"],
++                        "provider": source["provider"],
++                        "value": value,
++                    }
++                )
++        flagged = flag_nearby(merged_rows, rules["flag_distance_m"])
++
++        # Changes against the previous merged list
++        previous = aggregate.snapshot or {}
++        snapshot, changes = {}, []
++        for row in merged_rows:
++            key, digest = row["aed_id"], _row_hash(row, names + ["sources"])
++            snapshot[key] = [digest, row.get("name", ""), row.get("lat", ""), row.get("lon", "")]
++            old = previous.get(key)
++            if old is None or old[0] != digest:
++                change = "added" if old is None else "changed"
++                changes.append({"change": change, "aed_id": key, "record_key": key, "provider": row["provider"],
++                                "name": row.get("name", ""), "lat": row.get("lat", ""), "lon": row.get("lon", "")})
++        provider_titles = {str(p["provider_id"]): p["provider"] for p in providers}
++        for key, old in previous.items():
++            if key not in snapshot:
++                changes.append({"change": "removed", "aed_id": key, "record_key": key,
++                                "provider": provider_titles.get(key.split(":", 1)[0], key.split(":", 1)[0]),
++                                "name": old[1], "lat": old[2], "lon": old[3]})
++
++        full_rows = [dict(r, aed_id=r["record_key"]) for r in rows]
++        aggregate.resource = _publish(dataset, aggregate.resource, merged_rows, names + MERGED_COLUMNS,
++                                      texts["list_title"], texts["list_description"], f"wykaz_{stem}.csv", "list-")
++        aggregate.full_resource = _publish(dataset, aggregate.full_resource, full_rows, names + FULL_COLUMNS,
++                                           texts["full_title"], texts["full_description"], f"wykaz_pelny_{stem}.csv", "full-")
++        if conflict_rows:
++            aggregate.conflicts_resource = _publish(
++                dataset, aggregate.conflicts_resource, conflict_rows, CONFLICT_COLUMNS, texts["conflicts_title"],
++                f"{texts['conflicts_description']} Wykaz z dnia {today}.", f"konflikty_{stem}.csv", "conflicts-")
++        if changes:
++            aggregate.changes_resource = _publish(
++                dataset, aggregate.changes_resource, changes, CHANGE_COLUMNS, texts["changes_title"],
++                f"{texts['changes_description']} Wykaz z dnia {today}.", f"zmiany_{stem}.csv", "changes-")
++
++        counts = {kind: sum(1 for c in changes if c["change"] == kind) for kind in ("added", "removed", "changed")}
++        aggregate.snapshot = snapshot
++        aggregate.stats = {
++            "rows": len(merged_rows),
++            "source_rows": len(rows),
++            "merged_devices": sum(1 for g in groups if len(g) > 1),
++            "possible_duplicates": flagged,
++            "conflicts": len(conflict_rows),
++            "unresolved_refs": unresolved,
++            "providers": providers,
++            "skipped": skipped,
++            "rules": {k: rules[k] for k in ("precedence_by_institution_type", "flag_distance_m", "conflict_distance_m")},
++            **counts,
++        }
++        aggregate.built_at = timezone.now()
++        aggregate.save()
++
++    logger.info("standards: %s list built: %s", standard, {k: v for k, v in aggregate.stats.items() if k != "providers"})
++    return aggregate
 diff --git a/mcod/standards/apps.py b/mcod/standards/apps.py
 new file mode 100644
 index 0000000..e31da12
@@ -1098,10 +2247,10 @@ index 0000000..e31da12
 +    verbose_name = _("Data standards")
 diff --git a/mcod/standards/conformity.py b/mcod/standards/conformity.py
 new file mode 100644
-index 0000000..fde4575
+index 0000000..29fcfe9
 --- /dev/null
 +++ b/mcod/standards/conformity.py
-@@ -0,0 +1,519 @@
+@@ -0,0 +1,548 @@
 +"""
 +Conformity of resources (files) with the data standard their dataset is bound to.
 +
@@ -1433,6 +2582,15 @@ index 0000000..fde4575
 +    if remap or not conformity.mapping or not _mapping_fits(conformity.mapping, headers):
 +        conformity.mapping = suggest_mapping(standard, headers, sample)
 +        conformity.mapping_confirmed = False
++    else:
++        # A file can gain columns (e.g. a new optional field of the standard): map those named exactly like an
++        # unmapped standard field, even in a confirmed mapping (an exact name is unambiguous).
++        used = {item["col_index"] for item in conformity.mapping.values()}
++        by_name = {normalize_header(h): i for i, h in enumerate(headers) if i not in used}
++        for field in standard.fields:
++            index = by_name.get(normalize_header(field["name"]))
++            if field["name"] not in conformity.mapping and index is not None:
++                conformity.mapping[field["name"]] = {"col_name": headers[index], "col_index": index, "method": "exact"}
 +
 +    report = {"headers": headers, "missing_required": [], "warnings": [], "errors": [], "error_count": 0}
 +    report["missing_required"] = [f for f in standard.required_fields if f not in conformity.mapping]
@@ -1441,7 +2599,11 @@ index 0000000..fde4575
 +    if report["missing_required"]:
 +        conformity.status = ResourceConformity.STATUS_UNMAPPED
 +    else:
-+        valid, errors, count, rows = validate_normalized(resource, standard, conformity.mapping)
++        try:
++            valid, errors, count, rows = validate_normalized(resource, standard, conformity.mapping)
++        except Exception as exc:  # goodtables can raise on some values (e.g. CastError) instead of reporting them
++            logger.exception("standards: validation of resource %s raised", resource.pk)
++            valid, errors, count, rows = False, [{"code": "validation-error", "message": str(exc)[:500], "row": None}], 1, None
 +        report["errors"], report["error_count"], report["rows"] = errors, count, rows
 +        conformity.status = ResourceConformity.STATUS_OK if valid else ResourceConformity.STATUS_ERRORS
 +
@@ -1592,6 +2754,22 @@ index 0000000..fde4575
 +    resource.tabular_data_schema = tds
 +
 +
++def set_manual_mapping(resource, mapping: Dict[str, dict], *, reprocess: bool = True):
++    """Store a mapping confirmed by the editor and (by default) reprocess the file, so types and checks follow it."""
++    standard = get_standard(resource)
++    if standard is None:
++        return None
++    conformity, _ = ResourceConformity.objects.get_or_create(resource=resource, defaults={"standard": standard})
++    conformity.standard = standard
++    conformity.mapping = mapping
++    conformity.mapping_confirmed = True
++    conformity.status = ResourceConformity.STATUS_PENDING
++    conformity.save()
++    if reprocess:
++        resource.revalidate()
++    return conformity
++
++
 +def request_verification(resource):
 +    """
 +    Mark a draft as "publish once it conforms" and make the portal process its file now.
@@ -1627,12 +2805,47 @@ index 0000000..e69de29
 diff --git a/mcod/standards/management/commands/__init__.py b/mcod/standards/management/commands/__init__.py
 new file mode 100644
 index 0000000..e69de29
+diff --git a/mcod/standards/management/commands/build_standard_aggregate.py b/mcod/standards/management/commands/build_standard_aggregate.py
+new file mode 100644
+index 0000000..dc3c75e
+--- /dev/null
++++ b/mcod/standards/management/commands/build_standard_aggregate.py
+@@ -0,0 +1,29 @@
++from django.core.management.base import BaseCommand, CommandError
++
++from mcod.standards.aggregate import build_aggregate
++from mcod.standards.models import DataStandard
++
++
++class Command(BaseCommand):
++    help = "Build the national list of a data standard now (normally a nightly task)."
++
++    def add_arguments(self, parser):
++        parser.add_argument("code", nargs="?", default="aed")
++        parser.add_argument("--std-version", dest="std_version")
++
++    def handle(self, *args, **options):
++        standards = DataStandard.objects.filter(code=options["code"], is_active=True)
++        if options["std_version"]:
++            standards = standards.filter(version=options["std_version"])
++        standard = standards.order_by("-version").first()
++        if standard is None:
++            raise CommandError(f"No active standard {options['code']}")
++        aggregate = build_aggregate(standard)
++        stats = aggregate.stats
++        self.stdout.write(
++            f"{standard}: {stats['rows']} devices from {stats['source_rows']} provider rows in {len(stats['providers'])} files "
++            f"(merged {stats['merged_devices']}, possible duplicates {stats['possible_duplicates']}, conflicts {stats['conflicts']}, "
++            f"unresolved refs {stats['unresolved_refs']}; added {stats['added']}, changed {stats['changed']}, removed {stats['removed']}); "
++            f"dataset {aggregate.dataset_id}: list {aggregate.resource_id}, full {aggregate.full_resource_id}, "
++            f"conflicts {aggregate.conflicts_resource_id}, changes {aggregate.changes_resource_id}"
++        )
 diff --git a/mcod/standards/management/commands/load_aed_providers.py b/mcod/standards/management/commands/load_aed_providers.py
 new file mode 100644
-index 0000000..44571fa
+index 0000000..ab8852c
 --- /dev/null
 +++ b/mcod/standards/management/commands/load_aed_providers.py
-@@ -0,0 +1,140 @@
+@@ -0,0 +1,156 @@
 +import datetime
 +import json
 +from pathlib import Path
@@ -1666,6 +2879,11 @@ index 0000000..44571fa
 +    def add_arguments(self, parser):
 +        parser.add_argument("--config", default=str(Path(str(settings.DATA_DIR)) / "standards/aed/providers/providers.json"))
 +        parser.add_argument("--password", default="AedTest123!", help="password for the representative accounts (local use)")
++        parser.add_argument(
++            "--institutions-only",
++            action="store_true",
++            help="only create the institutions and representative accounts; representatives publish datasets themselves",
++        )
 +
 +    def handle(self, *args, **options):
 +        config_path = Path(options["config"])
@@ -1682,12 +2900,18 @@ index 0000000..44571fa
 +        coordinator = config["coordinator"]
 +        org = self._organization(coordinator, slug=coordinator["slug"])
 +        self._representative(coordinator["representative"], org, options["password"])
-+        self.stdout.write(f"coordinator: {org.title} (pk={org.pk}); set MAIN_AED_OWNER_ORG_PK={org.pk}")
++        if standard.aggregate_owner_id != org.pk:
++            standard.aggregate_owner = org
++            standard.save(update_fields=["aggregate_owner"])
++        self.stdout.write(f"coordinator: {org.title} (pk={org.pk}) owns the national list of {standard}")
 +
 +        for provider in config["providers"]:
 +            with transaction.atomic():
 +                org = self._organization(provider["institution"], slug=slugify(provider["institution"]["title"]))
 +                user = self._representative(provider["representative"], org, options["password"])
++                if options["institutions_only"]:
++                    self.stdout.write(f"{org.title}: institution {org.pk}, representative {user.email}")
++                    continue
 +                dataset = self._dataset(provider, org, standard, category, tag)
 +                resource = self._resource(provider, dataset, standard, config_path.parent)
 +            state = f"file {resource.pk} ({resource.status})" if resource else "no file"
@@ -1698,6 +2922,10 @@ index 0000000..44571fa
 +        org = org or Organization.raw.filter(title=data["title"], is_removed=False).first()
 +        fields = {k: v for k, v in data.items() if k not in ("representative", "slug")}
 +        if org is None:
++            # A removed institution may still hold the slug: make the new one unique.
++            base, n = slug, 2
++            while Organization.raw.filter(slug=slug).exists():
++                slug, n = f"{base}-{n}", n + 1
 +            org = Organization(slug=slug, **fields)
 +        else:
 +            for key, value in fields.items():
@@ -1716,6 +2944,7 @@ index 0000000..44571fa
 +        user.fullname = user.fullname or f"Pełnomocnik – {org.title}"
 +        user.phone = user.phone or getattr(org, "tel", None) or "000000000"  # staff accounts need name + phone
 +        user.state = "active"
++        user.is_active = True
 +        user.email_confirmed = user.email_confirmed or timezone.now()
 +        user.agent_organization_main = org
 +        user.save()
@@ -1881,15 +3110,94 @@ index 0000000..c70ed86
 +            constraint=models.UniqueConstraint(fields=('code', 'version'), name='standards_code_version_uq'),
 +        ),
 +    ]
+diff --git a/mcod/standards/migrations/0002_standard_aggregate.py b/mcod/standards/migrations/0002_standard_aggregate.py
+new file mode 100644
+index 0000000..6291238
+--- /dev/null
++++ b/mcod/standards/migrations/0002_standard_aggregate.py
+@@ -0,0 +1,40 @@
++# Generated by Django 2.2.9 on 2026-11-22 00:27
++
++import django.contrib.postgres.fields.jsonb
++from django.db import migrations, models
++import django.db.models.deletion
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ('organizations', '0025_auto_20251010_1248'),
++        ('resources', '0075_add_performance_indexes'),
++        ('datasets', '0047_dataset_data_standard'),
++        ('standards', '0001_initial'),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name='datastandard',
++            name='aggregate_owner',
++            field=models.ForeignKey(blank=True, help_text='Coordinating institution that publishes the combined list of all conforming files.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='aggregated_standards', to='organizations.Organization', verbose_name='national list owner'),
++        ),
++        migrations.CreateModel(
++            name='StandardAggregate',
++            fields=[
++                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
++                ('snapshot', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
++                ('stats', django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict)),
++                ('built_at', models.DateTimeField(blank=True, null=True)),
++                ('changes_resource', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='resources.Resource')),
++                ('dataset', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='datasets.Dataset')),
++                ('resource', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='+', to='resources.Resource')),
++                ('standard', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='aggregate', to='standards.DataStandard')),
++            ],
++            options={
++                'verbose_name': 'national list',
++                'verbose_name_plural': 'national lists',
++            },
++        ),
++    ]
+diff --git a/mcod/standards/migrations/0003_aggregate_full_and_conflicts.py b/mcod/standards/migrations/0003_aggregate_full_and_conflicts.py
+new file mode 100644
+index 0000000..87c602e
+--- /dev/null
++++ b/mcod/standards/migrations/0003_aggregate_full_and_conflicts.py
+@@ -0,0 +1,27 @@
++import django.db.models.deletion
++from django.db import migrations, models
++
++
++class Migration(migrations.Migration):
++
++    dependencies = [
++        ("resources", "0075_add_performance_indexes"),
++        ("standards", "0002_standard_aggregate"),
++    ]
++
++    operations = [
++        migrations.AddField(
++            model_name="standardaggregate",
++            name="full_resource",
++            field=models.ForeignKey(
++                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="+", to="resources.Resource"
++            ),
++        ),
++        migrations.AddField(
++            model_name="standardaggregate",
++            name="conflicts_resource",
++            field=models.ForeignKey(
++                blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="+", to="resources.Resource"
++            ),
++        ),
++    ]
 diff --git a/mcod/standards/migrations/__init__.py b/mcod/standards/migrations/__init__.py
 new file mode 100644
 index 0000000..e69de29
 diff --git a/mcod/standards/models.py b/mcod/standards/models.py
 new file mode 100644
-index 0000000..36f8d41
+index 0000000..bc23007
 --- /dev/null
 +++ b/mcod/standards/models.py
-@@ -0,0 +1,100 @@
+@@ -0,0 +1,146 @@
 +from django.contrib.postgres.fields import JSONField
 +from django.db import models
 +from django.utils.translation import gettext_lazy as _
@@ -1910,6 +3218,15 @@ index 0000000..36f8d41
 +    description = models.TextField(blank=True, verbose_name=_("description"))
 +    definition = JSONField(verbose_name=_("definition (Table Schema)"))
 +    is_active = models.BooleanField(default=True, verbose_name=_("active"))
++    aggregate_owner = models.ForeignKey(
++        "organizations.Organization",
++        on_delete=models.SET_NULL,
++        null=True,
++        blank=True,
++        related_name="aggregated_standards",
++        verbose_name=_("national list owner"),
++        help_text=_("Coordinating institution that publishes the combined list of all conforming files."),
++    )
 +    created = models.DateTimeField(auto_now_add=True)
 +    modified = models.DateTimeField(auto_now=True)
 +
@@ -1990,12 +3307,49 @@ index 0000000..36f8d41
 +    @property
 +    def is_ok(self):
 +        return self.status == self.STATUS_OK
++
++
++class StandardAggregate(models.Model):
++    """
++    The combined list of a standard (e.g. "Krajowy wykaz AED"): one dataset owned by the coordinating institution with
++    two files whose ids stay stable between runs: the list itself and the changes since the previous run.
++    """
++
++    standard = models.OneToOneField(DataStandard, on_delete=models.CASCADE, related_name="aggregate")
++    dataset = models.ForeignKey("datasets.Dataset", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
++    resource = models.ForeignKey("resources.Resource", on_delete=models.SET_NULL, null=True, blank=True, related_name="+")
++    changes_resource = models.ForeignKey(
++        "resources.Resource", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
++    )
++    full_resource = models.ForeignKey(
++        "resources.Resource", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
++    )
++    conflicts_resource = models.ForeignKey(
++        "resources.Resource", on_delete=models.SET_NULL, null=True, blank=True, related_name="+"
++    )
++    # {record_key: [row_hash, name, lat, lon]} of the last published list, used to compute changes.
++    snapshot = JSONField(default=dict, blank=True)
++    # {"rows", "providers": [...], "added", "removed", "changed", "skipped": [...]}
++    stats = JSONField(default=dict, blank=True)
++    built_at = models.DateTimeField(null=True, blank=True)
++
++    class Meta:
++        verbose_name = _("national list")
++        verbose_name_plural = _("national lists")
++
++    def __str__(self):
++        return f"{self.standard}: {self.stats.get('rows', 0)} rows"
++
++    @property
++    def published_resource(self):
++        r = self.resource
++        return r if r and r.status == "published" and not r.is_removed else None
 diff --git a/mcod/standards/tasks.py b/mcod/standards/tasks.py
 new file mode 100644
-index 0000000..c2a24a1
+index 0000000..8216a92
 --- /dev/null
 +++ b/mcod/standards/tasks.py
-@@ -0,0 +1,35 @@
+@@ -0,0 +1,55 @@
 +import logging
 +
 +from django.apps import apps
@@ -2031,3 +3385,196 @@ index 0000000..c2a24a1
 +    Resource = apps.get_model("resources", "Resource")
 +    conformity = check_resource(Resource.raw.get(pk=resource_id), remap=remap)
 +    return conformity.status if conformity else None
++
++
++@extended_shared_task(name="mcod.standards.tasks.build_standard_aggregates_task")
++def build_standard_aggregates_task(code: str = None) -> dict:
++    """(Re)build the national list of every active standard that has an owner (nightly, like the DGA list)."""
++    from mcod.standards.aggregate import build_aggregate
++    from mcod.standards.models import DataStandard
++
++    results = {}
++    standards = DataStandard.objects.filter(is_active=True, aggregate_owner__isnull=False)
++    if code:
++        standards = standards.filter(code=code)
++    for standard in standards:
++        try:
++            aggregate = build_aggregate(standard)
++            results[str(standard)] = aggregate.stats.get("rows")
++        except Exception as exc:
++            logger.exception("standards: national list for %s failed", standard)
++            results[str(standard)] = f"error: {exc}"
++    return results
+diff --git a/mcod/standards/views.py b/mcod/standards/views.py
+new file mode 100644
+index 0000000..2bbe90b
+--- /dev/null
++++ b/mcod/standards/views.py
+@@ -0,0 +1,73 @@
++import falcon
++
++from mcod.core.api import fields
++from mcod.core.api.handlers import BaseHdlr
++from mcod.core.api.hooks import login_optional
++from mcod.core.api.schemas import ExtSchema
++from mcod.core.api.views import JsonAPIView
++from mcod.core.versioning import versioned
++from mcod.standards.models import StandardAggregate
++
++
++class ProviderStatsSchema(ExtSchema):
++    provider = fields.Str()
++    provider_id = fields.Int()
++    dataset_id = fields.Int()
++    resource_id = fields.Int()
++    rows = fields.Int()
++    precedence = fields.Int()
++
++
++class StandardAggregateApiResponse(ExtSchema):
++    standard = fields.Str(attribute="standard.code")
++    version = fields.Str(attribute="standard.version")
++    title = fields.Str(attribute="standard.title")
++    owner = fields.Str(attribute="standard.aggregate_owner.title")
++    dataset_id = fields.Int(attribute="dataset.id")
++    dataset_slug = fields.Str(attribute="dataset.slug")
++    resource_id = fields.Int(attribute="resource.id")
++    resource_slug = fields.Str(attribute="resource.slug")
++    changes_resource_id = fields.Int(attribute="changes_resource.id", allow_none=True)
++    full_resource_id = fields.Int(attribute="full_resource.id", allow_none=True)
++    conflicts_resource_id = fields.Int(attribute="conflicts_resource.id", allow_none=True)
++    rows = fields.Int(attribute="stats.rows")
++    source_rows = fields.Int(attribute="stats.source_rows")
++    merged_devices = fields.Int(attribute="stats.merged_devices")
++    possible_duplicates = fields.Int(attribute="stats.possible_duplicates")
++    conflicts = fields.Int(attribute="stats.conflicts")
++    added = fields.Int(attribute="stats.added")
++    changed = fields.Int(attribute="stats.changed")
++    removed = fields.Int(attribute="stats.removed")
++    providers = fields.Nested(ProviderStatsSchema, attribute="stats.providers", many=True)
++    built_at = fields.DateTime(attribute="built_at")
++
++
++class StandardAggregateView(JsonAPIView):
++    """The national (combined) list of a data standard, e.g. /standards/aed/aggregated."""
++
++    @falcon.before(login_optional)
++    @versioned
++    def on_get(self, request, response, *args, **kwargs):
++        self.handle(request, response, self.GET, *args, **kwargs)
++
++    class GET(BaseHdlr):
++        database_model = StandardAggregate
++        serializer_schema = StandardAggregateApiResponse
++
++        def _get_data(self, cleaned, *args, **kwargs):
++            code = kwargs.get("code")
++            aggregate = (
++                StandardAggregate.objects.select_related(
++                    "standard", "standard__aggregate_owner", "dataset", "resource", "changes_resource", "full_resource", "conflicts_resource"
++                )
++                .filter(standard__code=code, standard__is_active=True)
++                .order_by("-standard__version")
++                .first()
++            )
++            if aggregate is None or aggregate.published_resource is None:
++                raise falcon.HTTPNotFound
++            return aggregate
++
++        def serialize(self, *args, **kwargs):
++            self.prepare_context(*args, **kwargs)
++            return self.serializer.dump(self.response.context.data)
+diff --git a/mcod/standards/widgets.py b/mcod/standards/widgets.py
+new file mode 100644
+index 0000000..5c8c0e5
+--- /dev/null
++++ b/mcod/standards/widgets.py
+@@ -0,0 +1,88 @@
++import json
++
++from django import forms
++from django.utils.html import escape
++
++from mcod.standards.models import ResourceConformity
++
++PREFIX = "std_map__"
++LEVEL_LABEL = {"required": "wymagane", "recommended": "zalecane", "optional": "opcjonalne"}
++
++
++def encode(item) -> str:
++    """Mapping item -> select value: "col:<index>", "point:<index>" or "" (not mapped)."""
++    if not item:
++        return ""
++    return f"{'point' if item.get('method') == 'point' else 'col'}:{item['col_index']}"
++
++
++def decode(choices: dict, headers: list) -> dict:
++    """{field: "col:3" | "point:7" | ""} -> mapping {field: {col_name, col_index, method, manual}}."""
++    mapping = {}
++    for field_name, value in choices.items():
++        if not value or ":" not in value:
++            continue
++        kind, index = value.split(":", 1)
++        index = int(index)
++        if not 0 <= index < len(headers):
++            continue
++        item = {"col_name": headers[index], "col_index": index, "method": "manual", "manual": True}
++        if kind == "point" and field_name in ("lat", "lon"):
++            item.update(method="point", part=field_name)
++        mapping[field_name] = item
++    return mapping
++
++
++class StandardMappingWidget(forms.Widget):
++    """One select per standard field, listing the file's columns. Pre-filled with the current (suggested) mapping."""
++
++    instance = None  # the resource, set by the form
++
++    def headers(self):
++        conformity = ResourceConformity.objects.filter(resource=self.instance).first() if self.instance else None
++        headers = (conformity.report or {}).get("headers") if conformity else None
++        if not headers:
++            headers = [f.get("name", "") for f in (getattr(self.instance, "tabular_data_schema", None) or {}).get("fields", [])]
++        return conformity, headers
++
++    def render(self, name, value, attrs=None, renderer=None):
++        standard = getattr(getattr(self.instance, "dataset", None), "data_standard", None)
++        if not standard:
++            return ""
++        conformity, headers = self.headers()
++        if not headers:
++            return "<p>Kolumny pliku będą dostępne po jego przetworzeniu.</p>"
++        mapping = (conformity.mapping if conformity else None) or {}
++        rows = []
++        for field in standard.fields:
++            ann = standard.annotation(field)
++            current = encode(mapping.get(field["name"]))
++            options = ['<option value="">— nie przypisano —</option>']
++            for i, header in enumerate(headers):
++                value_ = f"col:{i}"
++                selected = " selected" if value_ == current else ""
++                options.append(f'<option value="{value_}"{selected}>{escape(header)}</option>')
++            if field["name"] in ("lat", "lon"):
++                for i, header in enumerate(headers):
++                    value_ = f"point:{i}"
++                    selected = " selected" if value_ == current else ""
++                    options.append(f'<option value="{value_}"{selected}>punkt z kolumny: {escape(header)}</option>')
++            level = ann.get("level", "")
++            bold = ' style="font-weight:600"' if level == "required" else ""
++            rows.append(
++                f"<tr{bold}><td>{escape(ann.get('label_pl', field['name']))}<br><code>{escape(field['name'])}</code></td>"
++                f"<td>{LEVEL_LABEL.get(level, level)}</td>"
++                f'<td><select name="{PREFIX}{escape(field["name"])}" style="min-width:260px">{"".join(options)}</select></td>'
++                f"<td><small>{escape(ann.get('description_pl', ''))}</small></td></tr>"
++            )
++        confirmed = " (zatwierdzone ręcznie)" if conformity and conformity.mapping_confirmed else ""
++        return (
++            f"<p><b>Przypisanie kolumn pliku do pól standardu</b>{confirmed}. Zmień wybór, jeśli podpowiedź jest błędna, "
++            "i zapisz – plik zostanie ponownie sprawdzony.</p>"
++            '<table class="table table-condensed" style="max-width:1300px"><thead><tr><th>Pole standardu</th>'
++            "<th>Poziom</th><th>Kolumna w pliku</th><th>Opis</th></tr></thead><tbody>" + "".join(rows) + "</tbody></table>"
++        )
++
++    def value_from_datadict(self, data, files, name):
++        choices = {key[len(PREFIX):]: data.get(key, "") for key in data if key.startswith(PREFIX)}
++        return json.dumps(choices) if choices else None
