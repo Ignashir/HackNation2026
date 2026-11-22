@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AED Demo Links</title>
-<meta name="description" content="Buttons for every service of the HackNation AED demo running on a laptop on the same Wi-Fi.">
+<title>HackNation AED</title>
+<meta name="description" content="HackNation AED: links to the demo running on a laptop on the same Wi-Fi, and the promotional campaign.">
 <style>
   :root {
     --bg: #f5f6f8; --card: #ffffff; --text: #16191f; --muted: #5b6372; --line: #dde1e7;
@@ -50,11 +50,25 @@
   td .k:first-child { margin-top: 0; }
   td .role { display: block; color: var(--muted); font-size: .82rem; }
   .hidden { display: none; }
+  .tabs { display: flex; gap: 4px; margin: 16px 0 8px; border-bottom: 1px solid var(--line); overflow-x: auto; }
+  .tab { flex: 0 0 auto; padding: 10px 14px; border: 0; border-bottom: 3px solid transparent; border-radius: 0;
+         background: none; color: var(--muted); font-weight: 600; }
+  .tab:hover { color: var(--text); }
+  .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  [role="tabpanel"]:focus { outline: none; }
 </style>
 </head>
 <body>
 <main>
-  <h1>HackNation AED demo</h1>
+  <h1>HackNation AED</h1>
+
+  <div class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-demo" aria-controls="panel-demo" data-hash="demo">Demo</button>
+    <button class="tab" role="tab" id="tab-promocja" aria-controls="panel-promocja" data-hash="promocja">Akcja promocyjna</button>
+  </div>
+
+  <section id="panel-demo" role="tabpanel" aria-labelledby="tab-demo" tabindex="-1">
   <p class="muted">The demo runs on a laptop. Your device must be on the <strong>same Wi-Fi</strong> as the laptop
     (not mobile data, no VPN).</p>
 
@@ -112,6 +126,14 @@
       (not mobile data, no VPN). If pages time out, the Wi-Fi may block devices from talking to each other:
       connect the laptop and all devices to a phone hotspot.</p>
   </div>
+  </section>
+
+  <section id="panel-promocja" role="tabpanel" aria-labelledby="tab-promocja" tabindex="-1" lang="pl" hidden>
+    <h2>Akcja promocyjna</h2>
+    <div class="card">
+      <p class="muted">Wkrótce: materiały akcji promocyjnej.</p>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -149,6 +171,33 @@
 
   document.getElementById('ip-form').addEventListener('submit', (e) => { e.preventDefault(); apply(input.value); });
   apply(load());
+
+  const tabs = [...document.querySelectorAll('[role="tab"]')];
+  function show(tab, focus) {
+    for (const t of tabs) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', on);
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute('aria-controls')).hidden = !on;
+    }
+    if (focus) tab.focus();
+    const url = new URL(location.href);
+    url.hash = tab.dataset.hash === 'demo' ? '' : tab.dataset.hash;
+    history.replaceState(null, '', url);
+  }
+  for (const t of tabs) {
+    t.addEventListener('click', () => show(t));
+    t.addEventListener('keydown', (e) => {
+      const i = tabs.indexOf(t);
+      const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+      if (next === undefined) return;
+      e.preventDefault();
+      show(tabs[(next + tabs.length) % tabs.length], true);
+    });
+  }
+  const fromHash = () => tabs.find((t) => '#' + t.dataset.hash === location.hash) || tabs[0];
+  window.addEventListener('hashchange', () => show(fromHash()));
+  show(fromHash());
 </script>
 </body>
 </html>
