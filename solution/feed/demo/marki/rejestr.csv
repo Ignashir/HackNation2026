@@ -1,0 +1,8 @@
+aed_id,lat,lon,name,address,street,house_number,postcode,city,notes
+1,52.326697,21.107557,Urząd Miasta Marki,"al. Piłsudskiego 95, 05-270 Marki",al. Piłsudskiego,95,05-270,Marki,
+2,52.323960,21.098185,Szkoła Podstawowa nr 1,"ul. Okólna 14, 05-270 Marki",ul. Okólna,14,05-270,Marki,
+3,52.317014,21.104131,Szkoła Podstawowa nr 2,"ul. Szkolna 9, 05-270 Marki",ul. Szkolna,9,05-270,Marki,
+4,52.340344,21.113589,Szkoła Podstawowa nr 2,"ul. Pomnikowa 21, 05-270 Marki",ul. Pomnikowa,21,05-270,Marki,
+5,52.322235,21.105177,Filia - Szkoła Podstawowa nr 3,"ul. Duza 3, 05-270 Marki",ul. Duza,3,05-270,Marki,Te same współrzędne co AED nr 6 w pliku źródłowym
+6,52.322235,21.105177,Zespół Szkół nr im. Jana Pawła II (liceum),"al. Piłsudskiego 96, 05-270 Marki",al. Piłsudskiego,96,05-270,Marki,Te same współrzędne co AED nr 5 w pliku źródłowym
+8,52.325445,21.108176,Komisariat Policji,"ul. Sportowa 5, 05-270 Marki",ul. Sportowa,5,05-270,Marki,

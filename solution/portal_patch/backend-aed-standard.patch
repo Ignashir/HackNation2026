@@ -1,3 +1,847 @@
+diff --git a/data/harvester/xml_import_otwarte_dane_1_14.xsd b/data/harvester/xml_import_otwarte_dane_1_14.xsd
+new file mode 100644
+index 0000000..2753a4e
+--- /dev/null
++++ b/data/harvester/xml_import_otwarte_dane_1_14.xsd
+@@ -0,0 +1,838 @@
++<?xml version="1.0" encoding="UTF-8"?>
++<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="unqualified" targetNamespace="urn:otwarte-dane:harvester:1.14" xmlns="urn:otwarte-dane:harvester:1.14">
++
++    <xs:complexType name="titleType">
++        <xs:all>
++            <xs:element name="polish" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Tytuł w języku polskim.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:minLength value="1"></xs:minLength>
++                        <xs:maxLength value="300"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="english" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Tytuł w języku angielskim.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:minLength value="1"></xs:minLength>
++                        <xs:maxLength value="300"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++        </xs:all>
++    </xs:complexType>
++
++    <xs:complexType name="supplementType">
++        <xs:all>
++            <xs:element name="url" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Adres URL do dokumentu uzupełniającego.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:anyURI">
++                        <xs:maxLength value="2000"></xs:maxLength>
++                        <xs:pattern value="https://.*" />
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="name" type="titleType" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Nazwa dokumentu uzupełniającego.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="language">
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:enumeration value="pl"></xs:enumeration>
++                        <xs:enumeration value="en"></xs:enumeration>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++        </xs:all>
++    </xs:complexType>
++
++    <xs:complexType name="tagsType">
++        <xs:annotation>
++            <xs:documentation>Lista słów kluczowych (tagów).</xs:documentation>
++        </xs:annotation>
++        <xs:sequence maxOccurs="unbounded" minOccurs="1">
++            <xs:element name="tag">
++                <xs:complexType>
++                    <xs:simpleContent>
++                        <xs:extension base="xs:string">
++                            <xs:attribute name="lang" use="required">
++                                <xs:simpleType>
++                                    <xs:restriction base="xs:string">
++                                        <xs:enumeration value="pl"></xs:enumeration>
++                                        <xs:enumeration value="en"></xs:enumeration>
++                                    </xs:restriction>
++                                </xs:simpleType>
++                            </xs:attribute>
++                        </xs:extension>
++                    </xs:simpleContent>
++                </xs:complexType>
++            </xs:element>
++        </xs:sequence>
++    </xs:complexType>
++
++    <xs:simpleType name="categoryType">
++        <xs:restriction base="xs:string">
++            <xs:enumeration value="AGRI">
++                <xs:annotation>
++                    <xs:documentation>Rolnictwo, rybołówstwo, leśnictwo i żywność</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="EDUC">
++                <xs:annotation>
++                    <xs:documentation>Edukacja, kultura i sport</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="ENVI">
++                <xs:annotation>
++                    <xs:documentation>Środowisko</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="ENER">
++                <xs:annotation>
++                    <xs:documentation>Energia</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="TRAN">
++                <xs:annotation>
++                    <xs:documentation>Transport</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="TECH">
++                <xs:annotation>
++                    <xs:documentation>Nauka i technologia</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="ECON">
++                <xs:annotation>
++                    <xs:documentation>Gospodarka i finanse</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="SOCI">
++                <xs:annotation>
++                    <xs:documentation>Ludność i społeczeństwo</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="HEAL">
++                <xs:annotation>
++                    <xs:documentation>Zdrowie</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="GOVE">
++                <xs:annotation>
++                    <xs:documentation>Rząd i sektor publiczny</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="REGI">
++                <xs:annotation>
++                    <xs:documentation>Regiony i miasta</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="JUST">
++                <xs:annotation>
++                    <xs:documentation>Sprawiedliwość, ustrój sądów i bezpieczeństwo publiczne</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="INTR">
++                <xs:annotation>
++                    <xs:documentation>Kwestie międzynarodowe</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++        </xs:restriction>
++    </xs:simpleType>
++
++    <xs:complexType name="conditionsType">
++        <xs:all>
++            <xs:element name="source" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy odbiorca powinien poinformować o źródle,
++                        czasie wytworzenia i pozyskania informacji od
++                        podmiotu zobowiązanego?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="modification" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy odbiorca powinien poinformować o
++                        przetworzeniu informacji,
++                        gdy ją jakkolwiek modyfikuje?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="responsibilities" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Zakres odpowiedzialności dostawcy za
++                        przekazywane informacje.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:maxLength value="4000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="dbOrCopyrighted" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Warunki wykorzystywania informacji sektora
++                        publicznego spełniających cechy utworu lub
++                        stanowiących bazę danych (art. 13 ust. 2 ustawy
++                        o ponownym wykorzystywaniu informacji sektora
++                        publicznego).
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:maxLength value="4000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="dbOrCopyrightedLicenseChosen" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Licencja wybrana w ramach
++                        warunków wykorzystywania informacji sektora
++                        publicznego spełniających cechy utworu lub
++                        stanowiących bazę danych (art. 13 ust. 2 ustawy
++                        o ponownym wykorzystywaniu informacji sektora
++                        publicznego).
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:enumeration value="CC0 1.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/publicdomain/zero/1.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY-SA 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by-sa/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY-NC 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by-nc/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY-NC-SA 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY-ND 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by-nd/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="CC BY-NC-ND 4.0">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    https://creativecommons.org/licenses/by-nc-nd/4.0/legalcode.pl
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="personalData" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Warunki wykorzystywania informacji sektora
++                        publicznego zawierającej dane osobowe (art. 14
++                        ust. 1 pkt 4 ustawy o ponownym wykorzystywaniu
++                        informacji sektora publicznego).
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:maxLength value="4000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++        </xs:all>
++    </xs:complexType>
++
++    <xs:complexType name="descriptionType">
++        <xs:all>
++            <xs:element name="polish" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Opis w języku polskim.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:minLength value="1"></xs:minLength>
++                        <xs:maxLength value="1000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="english" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Opis w języku angielskim.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:minLength value="1"></xs:minLength>
++                        <xs:maxLength value="1000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++        </xs:all>
++    </xs:complexType>
++
++    <xs:simpleType name="specialSignType">
++        <xs:restriction base="xs:string">
++            <xs:enumeration value="-">
++                <xs:annotation>
++                    <xs:documentation>Kreska - Zjawisko nie wystąpiło.</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value=".">
++                <xs:annotation>
++                    <xs:documentation>Kropka - Zupełny brak informacji albo brak informacji wiarygodnych.</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="X">
++                <xs:annotation>
++                    <xs:documentation>Iks - Wypełnienie pozycji jest niemożliwe lub niecelowe.</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value=":">
++                <xs:annotation>
++                    <xs:documentation>Dwukropek - Zupełny brak informacji albo brak informacji wiarygodnych (Eurostat).</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++            <xs:enumeration value="#">
++                <xs:annotation>
++                    <xs:documentation>Hash - Dane nie mogą być opublikowane ze względu na konieczność zachowania tajemnicy statystycznej w rozumieniu ustawy o statystyce publicznej.</xs:documentation>
++                </xs:annotation>
++            </xs:enumeration>
++        </xs:restriction>
++    </xs:simpleType>
++
++    <xs:complexType name="dataStandardType">
++        <xs:annotation>
++            <xs:documentation>Odwołanie do standardu danych opublikowanego w portalu (kod i wersja).</xs:documentation>
++        </xs:annotation>
++        <xs:attribute name="code" use="required">
++            <xs:simpleType>
++                <xs:restriction base="xs:string">
++                    <xs:pattern value="[a-z0-9_-]{1,50}"/>
++                </xs:restriction>
++            </xs:simpleType>
++        </xs:attribute>
++        <xs:attribute name="version" use="required">
++            <xs:simpleType>
++                <xs:restriction base="xs:string">
++                    <xs:pattern value="[0-9]+(\.[0-9]+){0,2}"/>
++                </xs:restriction>
++            </xs:simpleType>
++        </xs:attribute>
++    </xs:complexType>
++
++    <xs:complexType name="datasetType">
++        <xs:all>
++            <xs:element name="extIdent" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Identyfikator zbioru danych w systemie dostawcy.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:maxLength value="36"></xs:maxLength>
++                        <xs:minLength value="1"></xs:minLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="intIdent" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Identyfikator systemowy zbioru danych.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:positiveInteger"></xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="title" type="titleType" maxOccurs="1" minOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Tytuł zbioru danych.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="description" type="descriptionType" maxOccurs="1" minOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Opis zbioru danych.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="url" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Źródłowy adres url zbioru danych.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:anyURI">
++                        <xs:maxLength value="1000"></xs:maxLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="updateFrequency" maxOccurs="1" minOccurs="1" default="irregular">
++                <xs:annotation>
++                    <xs:documentation>
++                        Częstotliwość, z jaką zbiór danych jest
++                        aktualizowany.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:enumeration value="daily">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Codziennie.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="weekly">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Co tydzień.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="monthly">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Co miesiąc.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="quarterly">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Co kwartał.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="everyHalfYear">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Co pół roku.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="yearly">
++                            <xs:annotation>
++                                <xs:documentation>Co rok.</xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="irregular">
++                            <xs:annotation>
++                                <xs:documentation>Nieregularnie.</xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="notPlanned">
++                            <xs:annotation>
++                                <xs:documentation>Jednorazowe udostępnienie.</xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="categories" maxOccurs="1" minOccurs="1">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Lista kategorii zbioru.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="unbounded" minOccurs="1">
++                        <xs:element name="category" type="categoryType"></xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++            <xs:element name="conditions" type="conditionsType" maxOccurs="1" minOccurs="0" />
++            <xs:element name="resources" maxOccurs="1" minOccurs="1">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Lista zasobów udostępnianych przez dany zbiór.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="unbounded" minOccurs="1">
++                        <xs:element name="resource" type="resourceType"></xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++            <xs:element name="tags" type="tagsType" maxOccurs="1" minOccurs="1" />
++            <xs:element name="lastUpdateDate" maxOccurs="1" minOccurs="0" type="xs:dateTime">
++                <xs:annotation>
++                    <xs:documentation>Data i czas ostatniej aktualizacji zbioru danych. Domyślną wartością jest dzień
++                        importu danych.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasDynamicData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zbiór zawiera dane dynamiczne?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasHighValueData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zbiór zawiera dane o wysokiej wartości?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasHighValueDataFromEuropeanCommissionList" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zbiór zawiera dane o wysokiej wartości z wykazu KE?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasResearchData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zbiór zawiera dane badawcze?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="supplements" maxOccurs="1" minOccurs="0">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Lista dokumentów uzupełniających  zbioru.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="10" minOccurs="1">
++                        <xs:element name="supplement" type="supplementType"></xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++            <xs:element name="dataStandard" type="dataStandardType" maxOccurs="1" minOccurs="0">
++                <xs:annotation>
++                    <xs:documentation>
++                        Standard danych, z którym zgodne są wszystkie zasoby zbioru (np. code="aed" version="1.0").
++                        Zasoby niezgodne ze standardem nie są publikowane. Od wersji 1.14.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++        </xs:all>
++        <xs:attribute name="status" default="published">
++            <xs:annotation>
++                <xs:documentation>Określa status publikacji zbioru. Domyślną wartością jest "published".
++                </xs:documentation>
++            </xs:annotation>
++            <xs:simpleType>
++                <xs:restriction base="xs:string">
++                    <xs:enumeration value="published">
++                        <xs:annotation>
++                            <xs:documentation>
++                                Zbiór jest opublikowany (widoczny
++                                dla użytkowników dane.gov.pl).
++                            </xs:documentation>
++                        </xs:annotation>
++                    </xs:enumeration>
++                    <xs:enumeration value="draft">
++                        <xs:annotation>
++                            <xs:documentation>
++                                Zbiór nie jest opublikowany (nie
++                                jest widoczny dla użytkowników
++                                dane.gov.pl).
++                            </xs:documentation>
++                        </xs:annotation>
++                    </xs:enumeration>
++                </xs:restriction>
++            </xs:simpleType>
++        </xs:attribute>
++    </xs:complexType>
++
++    <xs:complexType name="resourceType">
++        <xs:all>
++            <xs:element name="extIdent" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Identyfikator zbioru danych w systemie dostawcy.</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:maxLength value="36"></xs:maxLength>
++                        <xs:minLength value="1"></xs:minLength>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="intIdent" minOccurs="0" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Identyfikator systemowy zasobu.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:positiveInteger"></xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="url" minOccurs="1" maxOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>Adres URL zasobu (pliku, API, strony WWW).</xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:anyURI">
++                        <xs:maxLength value="2000"></xs:maxLength>
++                        <xs:pattern value="https://.*" />
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="title" type="titleType" maxOccurs="1" minOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Tytuł zasobu.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="description" type="descriptionType" maxOccurs="1" minOccurs="1">
++                <xs:annotation>
++                    <xs:documentation>
++                        Opis zasobu.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="availability" maxOccurs="1" minOccurs="0">
++                <xs:annotation>
++                    <xs:documentation>
++                        W przypadku zasobów plikowych określa, czy zasób
++                        ma być udostępniany z repozytorium dane.gov.pl,
++                        czy ze źródła zdalnego. Dozwolone są dwie
++                        wartości: local i remote. Local - plik zasobu
++                        zostanie ściągnięty do repozytorium dane.gov.pl
++                        i z niego będzie udostępniany użytkownikom -
++                        remote - plik będzie udostępniany użytownikom
++                        przez zewnętrzne źródło o adresie takim jak w
++                        polu "link".
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:enumeration value="local"></xs:enumeration>
++                        <xs:enumeration value="remote"></xs:enumeration>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="dataDate" maxOccurs="1" minOccurs="0" type="xs:date">
++                <xs:annotation>
++                    <xs:documentation>Dzień, na który przypada aktualność danych w zasobie. Domyślną wartością jest
++                        dzień importu danych.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="lastUpdateDate" maxOccurs="1" minOccurs="0" type="xs:dateTime">
++                <xs:annotation>
++                    <xs:documentation>Data i czas ostatniej aktualizacji zasobu. Domyślną wartością jest dzień importu
++                        danych.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasDynamicData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zasób zawiera dane dynamiczne?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasHighValueData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zasób zawiera dane o wysokiej wartości?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasHighValueDataFromEuropeanCommissionList" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zasób zawiera dane o wysokiej wartości z wykazu KE?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="hasResearchData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zasób zawiera dane badawcze?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="containsProtectedData" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy zasób zawiera wykaz chronionych danych instytucji?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="specialSigns" maxOccurs="1" minOccurs="0">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Znaki umowne.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="unbounded" minOccurs="1">
++                        <xs:element name="specialSign" type="specialSignType"></xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++            <xs:element name="supplements" maxOccurs="1" minOccurs="0">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Lista dokumentów uzupełniających  zasobu.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="10" minOccurs="1">
++                        <xs:element name="supplement" type="supplementType"></xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++            <xs:element name="isAutoDataDate" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy metadana dane na dzień ma być aktualizowana automatycznie?
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="endlessDataDateUpdate" type="xs:boolean" maxOccurs="1" minOccurs="0" default="false">
++                <xs:annotation>
++                    <xs:documentation>
++                        Czy metadana dane na dzień ma być aktualizowana automatycznie bez końca?
++                        W przypadku zaznczenia tej opcji, nie należy uzupełniać pola autoDataDateEnd.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="dataDateUpdatePeriod" maxOccurs="1" minOccurs="0">
++                <xs:annotation>
++                    <xs:documentation>
++                        W przypadku automatycznej aktualizacji metadanej "dane na dzień"
++                        określa odstępy czasowe pomiędzy kolejnymi aktualizacjami.
++                    </xs:documentation>
++                </xs:annotation>
++                <xs:simpleType>
++                    <xs:restriction base="xs:string">
++                        <xs:enumeration value="daily">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Aktualizacja metadanej "dane na dzień" ma odbywać się codziennie.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="weekly">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Aktualizacja metadanej "dane na dzień" ma odbywać się co tydzień.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                        <xs:enumeration value="monthly">
++                            <xs:annotation>
++                                <xs:documentation>
++                                    Aktualizacja metadanej "dane na dzień" ma odbywać się co miesiąc.
++                                </xs:documentation>
++                            </xs:annotation>
++                        </xs:enumeration>
++                    </xs:restriction>
++                </xs:simpleType>
++            </xs:element>
++            <xs:element name="autoDataDateStart" maxOccurs="1" minOccurs="0" type="xs:date">
++                <xs:annotation>
++                    <xs:documentation>Dzień rozpoczęcia aktualizacji metadanej "dane na dzień",
++                        będący jej pierwszą wartością.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="autoDataDateEnd" maxOccurs="1" minOccurs="0" type="xs:date">
++                <xs:annotation>
++                    <xs:documentation>Dzień zakończenia aktualizacji metadanej "dane na dzień",
++                        będący jej ostatnią wartością. W przypadku uzupełnienia danego pola
++                        nie należy wprowadzać wartości True dla pola endlessDataDateUpdate.
++                    </xs:documentation>
++                </xs:annotation>
++            </xs:element>
++            <xs:element name="regions" maxOccurs="1" minOccurs="0">
++                <xs:complexType>
++                    <xs:annotation>
++                        <xs:documentation>Lista identyfikatorów TERYT regionów, których dotyczą dane. Jako "region" rozumiemy miasto, gminę, powiat lub województwo.</xs:documentation>
++                    </xs:annotation>
++                    <xs:sequence maxOccurs="20" minOccurs="1">
++                        <xs:element name="terytIdent" minOccurs="1">
++                            <xs:simpleType>
++                                <xs:restriction base="xs:string">
++                                    <xs:maxLength value="7" />
++                                    <xs:minLength value="2" />
++                                </xs:restriction>
++                            </xs:simpleType>
++                        </xs:element>
++                    </xs:sequence>
++                </xs:complexType>
++            </xs:element>
++        </xs:all>
++        <xs:attribute name="status" default="published">
++            <xs:annotation>
++                <xs:documentation>Status publikacji zasobu. Domyślną wartością jest "published".</xs:documentation>
++            </xs:annotation>
++            <xs:simpleType>
++                <xs:restriction base="xs:string">
++                    <xs:enumeration value="published">
++                        <xs:annotation>
++                            <xs:documentation>
++                                Zasób jest opublikowany (widoczny dla użytkowników dane.gov.pl).
++                            </xs:documentation>
++                        </xs:annotation>
++                    </xs:enumeration>
++                    <xs:enumeration value="draft">
++                        <xs:annotation>
++                            <xs:documentation>
++                                Zasób nie jest opublikowany (nie jest widoczny dla użytkowników dane.gov.pl).
++                            </xs:documentation>
++                        </xs:annotation>
++                    </xs:enumeration>
++                </xs:restriction>
++            </xs:simpleType>
++        </xs:attribute>
++    </xs:complexType>
++
++    <xs:element name="datasets">
++        <xs:complexType>
++            <xs:annotation>
++                <xs:documentation>Lista zbiorów danych.</xs:documentation>
++            </xs:annotation>
++            <xs:sequence maxOccurs="unbounded" minOccurs="1">
++                <xs:element name="dataset" type="datasetType"></xs:element>
++            </xs:sequence>
++        </xs:complexType>
++    </xs:element>
++
++</xs:schema>
 diff --git a/data/standards/aed/1.0/schema.json b/data/standards/aed/1.0/schema.json
 new file mode 100644
 index 0000000..b4a0132
@@ -1168,6 +2012,112 @@ index c0fbf76..a8b396a 100644
      has_research_data = fields.Boolean()
      is_promoted = fields.Boolean()
      regions = fields.Nested(RegionSchema, many=True)
+diff --git a/mcod/harvester/models.py b/mcod/harvester/models.py
+index 2da13a8..205b3c5 100644
+--- a/mcod/harvester/models.py
++++ b/mcod/harvester/models.py
+@@ -57,6 +57,7 @@ from mcod.lib.metadata_validators import (
+ )
+ from mcod.lib.model_sanitization import SanitizedCharField, SanitizedTextField
+ from mcod.organizations.models import Organization
++from mcod.standards.harvest import VERIFY, after_harvested_resource, gate_harvested_resource
+ from mcod.resources.dga_utils import (
+     get_dga_resource_for_institution,
+     get_remote_extension_if_correct_dga_content_type,
+@@ -609,6 +610,10 @@ class DataSource(AdminMixin, LogMixin, SoftDeletableModel, TimeStampedModel):
+         int_ident = data.pop("int_ident", None)
+         special_signs = data.pop("special_signs", [])
+         regions = data.pop("regions", [])
++        # Dataset bound to a data standard: publish the file only once it conforms (mcod/standards/harvest.py).
++        standard_decision = gate_harvested_resource(self.resource_model, dataset, dict(data, int_ident=int_ident))
++        if standard_decision:
++            data["status"] = self.resource_model.STATUS.draft
+         if int_ident:
+             created = False
+             obj = self.resource_model.raw.filter(dataset=dataset, id=int_ident).first()
+@@ -630,8 +635,9 @@ class DataSource(AdminMixin, LogMixin, SoftDeletableModel, TimeStampedModel):
+ 
+         obj.special_signs.set(new_special_signs)
+ 
+-        if revalidate:
++        if revalidate and standard_decision != VERIFY:
+             obj.revalidate_tabular_data(apply_on_commit=True)
++        after_harvested_resource(obj, standard_decision)
+ 
+         return obj, created
+ 
+diff --git a/mcod/harvester/serializers.py b/mcod/harvester/serializers.py
+index 8c491d9..ebb3a56 100644
+--- a/mcod/harvester/serializers.py
++++ b/mcod/harvester/serializers.py
+@@ -44,6 +44,7 @@ from mcod.resources.dga_utils import (
+ )
+ from mcod.resources.link_validation import download_file
+ from mcod.resources.models import RESOURCE_DATA_DATE_PERIODS, Resource
++from mcod.standards.harvest import find_standard, other_dataset_with_standard
+ 
+ logger = logging.getLogger("mcod")
+ 
+@@ -704,6 +705,8 @@ class XMLDatasetSchema(XMLPreProcessedSchema):
+     has_high_value_data = Bool(data_key="hasHighValueData", allow_none=True, missing=None)
+     has_high_value_data_from_ec_list = Bool(data_key="hasHighValueDataFromEuropeanCommissionList", allow_none=True, missing=None)
+     has_research_data = Bool(data_key="hasResearchData", allow_none=True, missing=None)
++    # XSD >= 1.14: <dataStandard code="aed" version="1.0"/>; resolved to a DataStandard in post_load.
++    data_standard = Raw(allow_none=True)
+ 
+     class Meta:
+         ordered = True
+@@ -713,6 +716,9 @@ class XMLDatasetSchema(XMLPreProcessedSchema):
+         if "title" in data and isinstance(data.get("title"), dict):
+             data["title_en"] = data["title"].get("english", "")
+             data["title_pl"] = data["title"].get("polish", "")
++        data_standard = data.pop("dataStandard", None)
++        if isinstance(data_standard, dict):
++            data["data_standard"] = {"code": data_standard.get("@code"), "version": data_standard.get("@version")}
+         if "conditions" in data and isinstance(data["conditions"], dict):
+             data["license_condition_source"] = data["conditions"].get("source", False)
+             data["license_condition_modification"] = data["conditions"].get("modification", False)
+@@ -753,6 +759,40 @@ class XMLDatasetSchema(XMLPreProcessedSchema):
+             }
+             raise ValidationError(msg, field_name="int_ident")
+ 
++    @validates_schema
++    def validate_data_standard(self, data, **kwargs):
++        ref = data.get("data_standard")
++        if not ref:
++            return
++        standard = find_standard(ref)
++        if standard is None:
++            raise ValidationError(
++                _("Unknown data standard: %(code)s %(version)s.") % {"code": ref.get("code"), "version": ref.get("version")},
++                field_name="dataStandard",
++            )
++        other = other_dataset_with_standard(
++            Dataset,
++            self.context["organization"],
++            standard,
++            source_id=self.context.get("source_id"),
++            ext_ident=data.get("ext_ident"),
++            int_ident=data.get("int_ident"),
++        )
++        if other:
++            raise ValidationError(
++                _("This institution already has a dataset following this data standard: %(title)s (id %(id)s).")
++                % {"title": other.title, "id": other.pk},
++                field_name="dataStandard",
++            )
++
++    @post_load
++    def resolve_data_standard(self, data, **kwargs):
++        if data.get("data_standard"):
++            data["data_standard"] = find_standard(data["data_standard"])
++        else:
++            data.pop("data_standard", None)  # feeds without the element leave the dataset's binding unchanged
++        return data
++
+     @validates_schema
+     def validate_license_condition_db_or_copyrighted(self, data, **kwargs):
+         field_name = "license_condition_db_or_copyrighted"
 diff --git a/mcod/resources/admin.py b/mcod/resources/admin.py
 index ccd65a4..bad0d52 100644
 --- a/mcod/resources/admin.py
@@ -1520,7 +2470,7 @@ index 1c2468c..3ba0668 100644
      ("/resources/{id:int}/incr_download_count", res_views.ResourceDownloadCounter()),
      (
 diff --git a/mcod/settings/base.py b/mcod/settings/base.py
-index a88e90b..c478b1a 100644
+index a88e90b..514f054 100644
 --- a/mcod/settings/base.py
 +++ b/mcod/settings/base.py
 @@ -137,6 +137,7 @@ INSTALLED_APPS = [
@@ -1531,6 +2481,14 @@ index a88e90b..c478b1a 100644
      "mcod.users",
      "mcod.licenses",
      "mcod.counters",
+@@ -289,6 +290,7 @@ HARVESTER_XML_VERSION_TO_SCHEMA_PATH = {
+     "1.11": HARVESTER_DATA_DIR.path("xml_import_otwarte_dane_1_11.xsd").root,
+     "1.12": HARVESTER_DATA_DIR.path("xml_import_otwarte_dane_1_12.xsd").root,
+     "1.13": HARVESTER_DATA_DIR.path("xml_import_otwarte_dane_1_13.xsd").root,
++    "1.14": HARVESTER_DATA_DIR.path("xml_import_otwarte_dane_1_14.xsd").root,
+ }
+ 
+ HARVESTER_IMPORTERS = {
 diff --git a/mcod/standards/__init__.py b/mcod/standards/__init__.py
 new file mode 100644
 index 0000000..0b806f1
@@ -2799,6 +3757,88 @@ index 0000000..29fcfe9
 +            resource.save(update_fields=["status"])
 +
 +        transaction.on_commit(_publish)
+diff --git a/mcod/standards/harvest.py b/mcod/standards/harvest.py
+new file mode 100644
+index 0000000..64d755e
+--- /dev/null
++++ b/mcod/standards/harvest.py
+@@ -0,0 +1,76 @@
++"""
++Data standards in the harvester (XML feeds, XSD 1.14+).
++
++A feed binds a dataset to a standard with `<dataStandard code="aed" version="1.0"/>`. Files of a bound dataset follow
++the same rule as files uploaded in the admin panel: they are published only once they conform. A harvested file that
++is new, has a new URL, or has not been checked yet is saved as a draft with "publish once it conforms" and processed
++right away; the conformity check publishes it if it conforms. A file that does not conform stays a draft until the feed
++points to a corrected file.
++"""
++
++import logging
++from typing import Optional
++
++from mcod.standards.models import DataStandard, ResourceConformity
++
++logger = logging.getLogger("mcod")
++
++HOLD = "hold"  # keep as draft, nothing to do
++VERIFY = "verify"  # keep as draft and (re)check the file now
++
++
++def find_standard(ref: Optional[dict]) -> Optional[DataStandard]:
++    if not ref or not ref.get("code") or not ref.get("version"):
++        return None
++    return DataStandard.objects.filter(code=ref["code"], version=ref["version"], is_active=True).first()
++
++
++def other_dataset_with_standard(dataset_model, organization, standard, *, source_id=None, ext_ident=None, int_ident=None):
++    """One dataset per institution and standard: the institution's other dataset bound to it, if any."""
++    others = dataset_model.raw.filter(organization=organization, data_standard__code=standard.code, is_removed=False)
++    if int_ident:
++        others = others.exclude(pk=int_ident)
++    if source_id and ext_ident:
++        others = others.exclude(source_id=source_id, ext_ident=ext_ident)
++    return others.first()
++
++
++def gate_harvested_resource(resource_model, dataset, data: dict) -> Optional[str]:
++    """
++    Decide, before the harvester saves a resource, whether it must wait for the conformity check.
++
++    Changes `data["status"]` to draft when it must wait. Returns HOLD, VERIFY, or None (no standard, or the feed does not
++    publish the file).
++    """
++    standard = getattr(dataset, "data_standard", None)
++    if standard is None or data.get("status", "published") != "published":
++        return None
++
++    existing = None
++    if data.get("int_ident"):
++        existing = resource_model.raw.filter(dataset=dataset, id=data["int_ident"]).first()
++    elif data.get("ext_ident"):
++        existing = resource_model.raw.filter(dataset=dataset, ext_ident=data["ext_ident"]).first()
++    conformity = ResourceConformity.objects.filter(resource=existing).first() if existing else None
++
++    if existing is None or conformity is None or conformity.standard_id != standard.id or existing.link != data.get("link"):
++        decision = VERIFY
++    elif conformity.is_ok:
++        return None
++    else:
++        decision = HOLD  # same file as last time: pending (being checked) or does not conform
++
++    data["status"] = resource_model.STATUS.draft
++    return decision
++
++
++def after_harvested_resource(resource, decision: Optional[str]) -> None:
++    """Request the check (and publishing once it conforms) for a resource held by `gate_harvested_resource`."""
++    if decision != VERIFY or resource is None:
++        return
++    from mcod.standards.conformity import request_verification
++
++    try:
++        request_verification(resource)
++    except Exception:
++        logger.exception("standards: cannot request verification of harvested resource %s", resource.pk)
 diff --git a/mcod/standards/management/__init__.py b/mcod/standards/management/__init__.py
 new file mode 100644
 index 0000000..e69de29

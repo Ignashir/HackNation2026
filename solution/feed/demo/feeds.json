@@ -1,0 +1,29 @@
+{
+  "$comment": "Demo feed for the local portal. int_ident 4220 is the Marki dataset created by load_aed_providers on the local portal: the feed takes it over instead of creating a second AED dataset for the institution. rejestr.csv is the file served; copy 1-oryginal.csv or 2-poprawiony.csv over it to switch versions.",
+  "standard": {"code": "aed", "version": "1.0"},
+  "feeds": [
+    {
+      "slug": "marki",
+      "dataset": {
+        "ext_ident": "aed-rejestr-marki",
+        "int_ident": 4220,
+        "title_pl": "Defibrylatory zlokalizowane na terenie Miasta Marki",
+        "title_en": "AED locations in Marki",
+        "description_pl": "Rejestr automatycznych defibrylatorów zewnętrznych (AED) Urzędu Miasta Marki w standardzie danych AED 1.0. Publikowany automatycznie z systemu urzędu (harvester).",
+        "update_frequency": "irregular",
+        "categories": ["HEAL"],
+        "tags": ["AED", "defibrylator"],
+        "license": "CC BY 4.0"
+      },
+      "resources": [
+        {
+          "ext_ident": "aed-rejestr-marki-csv",
+          "file": "marki/rejestr.csv",
+          "title_pl": "Rejestr AED – Marki",
+          "title_en": "AED register – Marki",
+          "description_pl": "Lokalizacje AED na terenie Miasta Marki (CSV, standard AED 1.0)."
+        }
+      ]
+    }
+  ]
+}

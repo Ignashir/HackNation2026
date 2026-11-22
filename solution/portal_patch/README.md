@@ -17,6 +17,8 @@ No AI in the portal: mapping is deterministic (standard names, header synonyms, 
 | Portal map roles | For a conforming file, the portal's map (Maps and plots) is filled in automatically from the standard mapping |
 | Broken-CSV check (all datasets) | New goodtables check `single-column-delimited` (`resources/goodtables_checks.py`): a mis-quoted CSV read as one column now fails visibly |
 | `manage.py load_data_standards` | Loads `data/standards/<code>/<version>/schema.json` (copy of `solution/standard/aed/1.0/schema.json`) |
+| Harvester XSD 1.14 (`data/harvester/`, `harvester/serializers.py`, `harvester/models.py`, `standards/harvest.py`) | Optional `<dataStandard code=".." version=".."/>` binds a harvested dataset to a standard. Harvested files of a bound dataset are drafts until they conform, then published automatically. Feeds come from [`solution/feed`](../feed/) |
+| National list (`standards/aggregate.py`, `GET /1.4/standards/{code}/aggregated`) | Nightly "Krajowy wykaz AED" from all conforming files: merged list, all rows, conflicts, changes |
 | `manage.py load_aed_providers` | Real providers (Krosno, Przemyśl, Marki, Warsaw): institutions, a representative account each, AED-register datasets, their real files from dane.gov.pl |
 
 ## Apply and set up (local portal from `codebase/`)
@@ -51,7 +53,6 @@ Frontend (local dev only): `codebase/frontend_latest/angular.json`, serve config
 
 ## Not yet (next steps in the plan)
 
-- Editing the mapping by hand in the "Data standard" tab (it is shown read-only; suggestions are automatic).
-- Harvester XSD 1.14 with `dataStandard` (Phase 2), national list + `/1.4/standards/aed/aggregated` (Phase 3),
-  frontend badge and AED page (Phase 4).
+- Rejection codes for non-conforming harvested files in the harvest report and the email.
+- A search filter by standard (needs re-indexing) and `related_resource` links from provider files to the list.
 - Tests in the portal's pytest suite.
